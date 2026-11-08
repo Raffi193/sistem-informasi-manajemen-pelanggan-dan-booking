@@ -7,6 +7,8 @@ import { BuktiUpload } from "@/components/bukti-upload";
 import { PaymentInstructions } from "@/components/payment-instructions";
 import { Spinner } from "@/components/spinner";
 import { StatusBadge, type StatusValue } from "@/components/status-badge";
+import { formatTanggal } from "@/lib/date";
+import { formatJam } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/is-configured";
 
@@ -14,7 +16,9 @@ type BookingStatus = {
   kode_booking: string;
   status: StatusValue;
   tgl_booking: string;
-  sisa_jam: number;
+  tanggal_latihan: string | null;
+  jam_mulai: string | null;
+  jam_selesai: string | null;
 };
 
 const STATUS_DESC: Record<string, string> = {
@@ -28,8 +32,6 @@ const STATUS_DESC: Record<string, string> = {
     "Booking Anda tidak dapat diproses. Hubungi admin untuk informasi lebih lanjut, atau buat booking baru dengan jadwal lain.",
   selesai: "Kursus Anda sudah selesai. Terima kasih telah belajar bersama kami!",
   batal: "Booking ini telah dibatalkan.",
-  no_show:
-    "Anda tidak hadir pada jadwal ini. Hubungi admin untuk mengatur ulang jadwal.",
 };
 
 export default function StatusPage() {
@@ -179,6 +181,20 @@ export default function StatusPage() {
             <p className="animate-fade-in mt-4 text-sm leading-relaxed text-muted-foreground">
               {STATUS_DESC[result.status]}
             </p>
+
+            {result.tanggal_latihan && result.jam_mulai && result.jam_selesai && (
+              <div className="mt-4 rounded-xl border border-border bg-secondary/40 px-4 py-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Jadwal awal
+                </p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {formatTanggal(result.tanggal_latihan)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {formatJam(result.jam_mulai)}–{formatJam(result.jam_selesai)}
+                </p>
+              </div>
+            )}
 
             {result.status === "menunggu_pembayaran" && (
               <>

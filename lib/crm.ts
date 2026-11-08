@@ -49,11 +49,6 @@ export const FOLLOW_UP_TYPES = [
     className: "bg-blue-100 text-blue-700 ring-blue-600/20",
   },
   {
-    value: "kunjungan",
-    label: "Kunjungan",
-    className: "bg-amber-100 text-amber-700 ring-amber-600/20",
-  },
-  {
     value: "lainnya",
     label: "Lainnya",
     className: "bg-slate-100 text-slate-600 ring-slate-500/20",

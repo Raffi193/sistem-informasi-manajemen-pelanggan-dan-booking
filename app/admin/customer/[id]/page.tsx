@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { CustomerForm } from "@/components/customer-form";
 import { CustomerStatusBadge } from "@/components/customer-status-badge";
+import { DeleteCustomerButton } from "@/components/delete-customer-button";
 import { FollowUpForm } from "@/components/follow-up-form";
 import { FollowUpTypeBadge } from "@/components/follow-up-type-badge";
 import { StatusBadge, type StatusValue } from "@/components/status-badge";
@@ -11,7 +11,7 @@ import {
   type CustomerStatusValue,
   waLink,
 } from "@/lib/crm";
-import { formatTanggal, todayInJakarta } from "@/lib/date";
+import { calculateAge, formatTanggal, todayInJakarta } from "@/lib/date";
 import { one, type Embed } from "@/lib/embed";
 import { formatJam, formatRupiah } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
@@ -23,6 +23,7 @@ type CustomerRow = {
   nama: string;
   no_wa: string;
   alamat: string | null;
+  tanggal_lahir: string | null;
   status: string;
   created_at: string;
 };
@@ -32,9 +33,10 @@ type BookingRow = {
   kode_booking: string;
   status: StatusValue;
   tgl_booking: string;
+  tanggal_latihan: string | null;
   catatan: string | null;
   paket: Embed<{ nama: string; harga: number }>;
-  slot: Embed<{ tanggal: string; jam_mulai: string; jam_selesai: string }>;
+  slot_template: Embed<{ jam_mulai: string; jam_selesai: string }>;
 };
 
 type FollowUpRow = {
@@ -58,13 +60,13 @@ export default async function CustomerDetailPage({
   const [customerRes, bookingsRes, followUpsRes] = await Promise.all([
     supabase
       .from("customer")
-      .select("id,nama,no_wa,alamat,status,created_at")
+      .select("id,nama,no_wa,alamat,tanggal_lahir,status,created_at")
       .eq("id", id)
       .maybeSingle(),
     supabase
       .from("booking")
       .select(
-        "id,kode_booking,status,tgl_booking,catatan,paket:paket_id(nama,harga),slot:slot_id(tanggal,jam_mulai,jam_selesai)",
+        "id,kode_booking,status,tgl_booking,tanggal_latihan,catatan,paket:paket_id(nama,harga),slot_template:slot_template_id(jam_mulai,jam_selesai)",
       )
       .eq("customer_id", id)
       .order("tgl_booking", { ascending: false }),
@@ -88,6 +90,7 @@ export default async function CustomerDetailPage({
   const bookings = (bookingsRes.data ?? []) as unknown as BookingRow[];
   const followUps = (followUpsRes.data ?? []) as FollowUpRow[];
   const today = todayInJakarta();
+  const umur = calculateAge(customerRow.tanggal_lahir, today);
 
   return (
     <div className="space-y-6">
@@ -122,36 +125,93 @@ export default async function CustomerDetailPage({
           </p>
         </div>
 
-        <a
-          href={waLink(
-            customerRow.no_wa,
-            `Halo ${customerRow.nama}, kami dari LPK CV. Fathan. Ada yang bisa kami bantu terkait kursus mengemudi Anda?`,
-          )}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-full bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-700"
-        >
-          Chat WhatsApp
-        </a>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={waLink(
+              customerRow.no_wa,
+              `Halo ${customerRow.nama}, kami dari LPK CV. Fathan. Ada yang bisa kami bantu terkait kursus mengemudi Anda?`,
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-700"
+          >
+            Chat WhatsApp
+          </a>
+          <DeleteCustomerButton
+            customerId={customerRow.id}
+            customerName={customerRow.nama}
+          />
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border border-border bg-white p-5">
           <h2 className="font-display font-bold">Data customer</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Perbarui identitas dan status CRM customer.
+            Data dari booking customer. Admin hanya dapat melihat.
           </p>
-          <div className="mt-5">
-            <CustomerForm
-              customer={{
-                id: customerRow.id,
-                nama: customerRow.nama,
-                no_wa: customerRow.no_wa,
-                alamat: customerRow.alamat,
-                status,
-              }}
-            />
-          </div>
+          <dl className="mt-5 grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Nama
+              </dt>
+              <dd className="mt-1 font-medium text-foreground">
+                {customerRow.nama}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                WhatsApp
+              </dt>
+              <dd className="mt-1">
+                <a
+                  href={waLink(
+                    customerRow.no_wa,
+                    `Halo ${customerRow.nama}, kami dari LPK CV. Fathan.`,
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-primary hover:underline"
+                >
+                  {customerRow.no_wa}
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Status CRM
+              </dt>
+              <dd className="mt-1">
+                <CustomerStatusBadge status={status} />
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Tanggal lahir
+              </dt>
+              <dd className="mt-1 font-medium text-foreground">
+                {customerRow.tanggal_lahir
+                  ? formatTanggal(customerRow.tanggal_lahir)
+                  : "-"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Umur
+              </dt>
+              <dd className="mt-1 font-medium text-foreground">
+                {umur !== null ? `${umur} tahun` : "-"}
+              </dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Alamat
+              </dt>
+              <dd className="mt-1 whitespace-pre-wrap leading-relaxed text-foreground">
+                {customerRow.alamat || "-"}
+              </dd>
+            </div>
+          </dl>
         </section>
 
         <section className="rounded-2xl border border-border bg-white p-5">
@@ -183,7 +243,7 @@ export default async function CustomerDetailPage({
               <div className="divide-y divide-border md:hidden">
                 {bookings.map((booking) => {
                   const paket = one(booking.paket);
-                  const slot = one(booking.slot);
+                  const jadwal = one(booking.slot_template);
 
                   return (
                     <div key={booking.id} className="p-4">
@@ -200,10 +260,10 @@ export default async function CustomerDetailPage({
                         {paket ? formatRupiah(paket.harga) : "-"}
                       </p>
                       <p className="mt-2 text-xs text-muted-foreground">
-                        {slot
-                          ? `${formatTanggal(slot.tanggal)} · ${formatJam(
-                              slot.jam_mulai,
-                            )}–${formatJam(slot.jam_selesai)}`
+                        {booking.tanggal_latihan && jadwal
+                          ? `${formatTanggal(booking.tanggal_latihan)} · ${formatJam(
+                              jadwal.jam_mulai,
+                            )}–${formatJam(jadwal.jam_selesai)}`
                           : "-"}
                       </p>
                     </div>
@@ -224,7 +284,7 @@ export default async function CustomerDetailPage({
                   <tbody className="divide-y divide-border">
                     {bookings.map((booking) => {
                       const paket = one(booking.paket);
-                      const slot = one(booking.slot);
+                      const jadwal = one(booking.slot_template);
 
                       return (
                         <tr key={booking.id}>
@@ -238,10 +298,10 @@ export default async function CustomerDetailPage({
                             </p>
                           </td>
                           <td className="px-5 py-3 text-muted-foreground">
-                            {slot
-                              ? `${formatTanggal(slot.tanggal)} · ${formatJam(
-                                  slot.jam_mulai,
-                                )}–${formatJam(slot.jam_selesai)}`
+                            {booking.tanggal_latihan && jadwal
+                              ? `${formatTanggal(booking.tanggal_latihan)} · ${formatJam(
+                                  jadwal.jam_mulai,
+                                )}–${formatJam(jadwal.jam_selesai)}`
                               : "-"}
                           </td>
                           <td className="px-5 py-3">

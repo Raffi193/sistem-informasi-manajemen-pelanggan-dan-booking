@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { isAdminClaims } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 async function requireAdmin() {
@@ -9,22 +10,50 @@ async function requireAdmin() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (
+    !user ||
+    !isAdminClaims({ email: user.email, app_metadata: user.app_metadata })
+  ) {
     throw new Error("Tidak diizinkan.");
   }
 
   return supabase;
 }
 
-function refreshAdmin() {
+function refreshAdmin(customerId?: string | null) {
   revalidatePath("/admin/booking");
+  revalidatePath("/admin/customer");
+  revalidatePath("/admin/laporan");
+  revalidatePath("/admin/analitik");
   revalidatePath("/admin");
+
+  if (customerId) {
+    revalidatePath(`/admin/customer/${customerId}`);
+  }
+}
+
+async function updateCustomerStatus(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  customerId: string | null | undefined,
+  status: "aktif" | "selesai",
+) {
+  if (!customerId) return;
+
+  const { error } = await supabase
+    .from("customer")
+    .update({ status })
+    .eq("id", customerId);
+
+  if (error) {
+    console.error("updateCustomerStatus gagal:", error.message);
+  }
 }
 
 /**
  * Setujui atau tolak bukti pembayaran.
  * - Setuju: booking menjadi `disetujui`, pembayaran `terverifikasi`.
- * - Tolak: booking menjadi `ditolak`, pembayaran `ditolak`, slot dibebaskan.
+ * - Tolak: booking menjadi `ditolak`, pembayaran `ditolak`, kuota jadwal
+ *   otomatis terbuka karena status ditolak tidak dihitung sebagai pemakaian.
  */
 export async function verifyBookingAction(formData: FormData) {
   const supabase = await requireAdmin();
@@ -38,7 +67,7 @@ export async function verifyBookingAction(formData: FormData) {
 
   const { data: booking } = await supabase
     .from("booking")
-    .select("id,status,slot_id")
+    .select("id,status,slot_template_id,tanggal_latihan,customer_id")
     .eq("id", bookingId)
     .maybeSingle();
 
@@ -58,46 +87,42 @@ export async function verifyBookingAction(formData: FormData) {
       .update({ status_verifikasi: "terverifikasi" })
       .eq("booking_id", bookingId)
       .eq("status_verifikasi", "menunggu");
-  } else {
-    const slotId = booking.slot_id;
 
-    // Simpan informasi slot asal di catatan sebelum dilepas, agar riwayat
-    // tetap terbaca meskipun slot sudah bisa dipesan ulang.
+    // Booking disetujui berarti customer sedang aktif menjalani kursus.
+    await updateCustomerStatus(supabase, booking.customer_id, "aktif");
+  } else {
+    // Simpan informasi jadwal asal di catatan agar riwayat tetap terbaca.
     let catatan = "Ditolak admin.";
-    if (slotId) {
-      const { data: slot } = await supabase
-        .from("slot")
-        .select("tanggal,jam_mulai,jam_selesai")
-        .eq("id", slotId)
+    if (booking.slot_template_id && booking.tanggal_latihan) {
+      const { data: jadwal } = await supabase
+        .from("slot_template")
+        .select("jam_mulai,jam_selesai")
+        .eq("id", booking.slot_template_id)
         .maybeSingle();
 
-      if (slot) {
-        catatan = `Ditolak admin. Slot asal: ${slot.tanggal} ${slot.jam_mulai.slice(0, 5)}–${slot.jam_selesai.slice(0, 5)}.`;
+      if (jadwal) {
+        catatan = `Ditolak admin. Jadwal asal: ${booking.tanggal_latihan} ${jadwal.jam_mulai.slice(0, 5)}–${jadwal.jam_selesai.slice(0, 5)}.`;
       }
     }
 
-    // Lepas slot dari booking agar slot bisa dipesan ulang. Constraint unik
-    // pada booking.slot_id akan menahan pemakaian ulang bila tidak dilepas.
+    // Jadwal tidak perlu dilepas dari booking. Kapasitas dihitung dari status
+    // booking, sehingga status `ditolak` otomatis membebaskan kuota.
     await supabase
       .from("booking")
-      .update({ status: "ditolak", slot_id: null, catatan })
+      .update({ status: "ditolak", catatan })
       .eq("id", bookingId);
-
-    if (slotId) {
-      await supabase
-        .from("slot")
-        .update({ status: "tersedia" })
-        .eq("id", slotId);
-    }
 
     await supabase
       .from("pembayaran")
       .update({ status_verifikasi: "ditolak" })
       .eq("booking_id", bookingId)
       .eq("status_verifikasi", "menunggu");
+
+    // Booking ditolak hanya mengubah status booking. Status customer tidak
+    // dijadikan "batal" karena customer tetap bisa melakukan booking lain.
   }
 
-  refreshAdmin();
+  refreshAdmin(booking.customer_id);
 }
 
 /** Tandai booking yang sudah disetujui sebagai selesai. */
@@ -107,44 +132,26 @@ export async function markSelesaiAction(formData: FormData) {
 
   if (!bookingId) return;
 
-  await supabase
-    .from("booking")
-    .update({ status: "selesai" })
-    .eq("id", bookingId)
-    .eq("status", "disetujui");
-
-  refreshAdmin();
-}
-
-/**
- * Tandai booking sebagai no-show.
- * - Tanpa konfirmasi: sesi hangus (sisa_jam = 0).
- * - Dengan konfirmasi: kompensasi 1 jam (sisa_jam = 1).
- */
-export async function markNoShowAction(formData: FormData) {
-  const supabase = await requireAdmin();
-  const bookingId = String(formData.get("booking_id") ?? "");
-  const konfirmasi = formData.get("konfirmasi") === "ya";
-
-  if (!bookingId) return;
-
   const { data: booking } = await supabase
     .from("booking")
-    .select("id,status")
+    .select("id,status,customer_id")
     .eq("id", bookingId)
     .maybeSingle();
 
   if (!booking || booking.status !== "disetujui") return;
 
-  const { error } = await supabase.rpc("mark_no_show", {
-    p_booking_id: bookingId,
-    p_konfirmasi: konfirmasi,
-  });
+  const { error } = await supabase
+    .from("booking")
+    .update({ status: "selesai" })
+    .eq("id", bookingId)
+    .eq("status", "disetujui");
 
   if (error) {
-    console.error("mark_no_show gagal:", error.message);
+    console.error("markSelesaiAction gagal:", error.message);
     return;
   }
 
-  refreshAdmin();
+  // Masa kursus selesai, jadi status customer menjadi selesai.
+  await updateCustomerStatus(supabase, booking.customer_id, "selesai");
+  refreshAdmin(booking.customer_id);
 }

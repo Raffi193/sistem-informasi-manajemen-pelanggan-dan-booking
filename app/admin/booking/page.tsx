@@ -3,11 +3,11 @@ import { connection } from "next/server";
 import { AdminPageHeader } from "@/components/admin-page-header";
 import { ConfirmSubmit } from "@/components/confirm-submit";
 import { StatusBadge, type StatusValue } from "@/components/status-badge";
-import { formatTanggal } from "@/lib/date";
+import { calculateAge, formatTanggal } from "@/lib/date";
 import { one, type Embed } from "@/lib/embed";
 import { formatJam, formatRupiah } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
-import { markNoShowAction, markSelesaiAction, verifyBookingAction } from "./actions";
+import { markSelesaiAction, verifyBookingAction } from "./actions";
 
 export const instant = false;
 
@@ -25,10 +25,16 @@ type BookingRow = {
   kode_booking: string;
   status: StatusValue;
   tgl_booking: string;
+  tanggal_latihan: string | null;
+  biaya_tambahan: number;
   catatan: string | null;
-  customer: Embed<{ nama: string; no_wa: string }>;
+  customer: Embed<{
+    nama: string;
+    no_wa: string;
+    tanggal_lahir: string | null;
+  }>;
   paket: Embed<{ nama: string; harga: number }>;
-  slot: Embed<{ tanggal: string; jam_mulai: string; jam_selesai: string }>;
+  slot_template: Embed<{ jam_mulai: string; jam_selesai: string }>;
   pembayaran: PaymentRow[] | PaymentRow | null;
 };
 
@@ -39,7 +45,6 @@ const FILTERS = [
   { key: "disetujui", label: "Disetujui" },
   { key: "ditolak", label: "Ditolak" },
   { key: "selesai", label: "Selesai" },
-  { key: "no_show", label: "No-show" },
 ] as const;
 
 function latestPayment(value: BookingRow["pembayaran"]): PaymentRow | null {
@@ -75,10 +80,12 @@ export default async function AdminBookingPage({
       kode_booking,
       status,
       tgl_booking,
+      tanggal_latihan,
+      biaya_tambahan,
       catatan,
-      customer:customer_id (nama, no_wa),
+      customer:customer_id (nama, no_wa, tanggal_lahir),
       paket:paket_id (nama, harga),
-      slot:slot_id (tanggal, jam_mulai, jam_selesai),
+      slot_template:slot_template_id (jam_mulai, jam_selesai),
       pembayaran (id, jenis, jumlah, bukti_file, status_verifikasi, created_at)
     `,
     )
@@ -200,8 +207,9 @@ export default async function AdminBookingPage({
         {filtered.map((booking) => {
           const customer = one(booking.customer);
           const paket = one(booking.paket);
-          const slot = one(booking.slot);
+          const jadwal = one(booking.slot_template);
           const payment = latestPayment(booking.pembayaran);
+          const umur = calculateAge(customer?.tanggal_lahir);
           const proofPath = payment?.bukti_file ?? null;
           const proofUrl = proofPath
             ? `/api/admin/bukti?path=${encodeURIComponent(proofPath)}`
@@ -283,17 +291,41 @@ export default async function AdminBookingPage({
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-muted-foreground">Jadwal</dt>
+                      <dt className="text-muted-foreground">Jadwal awal</dt>
                       <dd className="font-medium text-foreground">
-                        {slot
-                          ? `${slot.tanggal} · ${formatJam(slot.jam_mulai)}–${formatJam(slot.jam_selesai)}`
+                        {booking.tanggal_latihan && jadwal
+                          ? `${formatTanggal(booking.tanggal_latihan)} · ${formatJam(jadwal.jam_mulai)}–${formatJam(jadwal.jam_selesai)}`
                           : "-"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">Umur</dt>
+                      <dd className="font-medium text-foreground">
+                        {umur !== null ? `${umur} tahun` : "-"}
                       </dd>
                     </div>
                     <div>
                       <dt className="text-muted-foreground">Nominal</dt>
                       <dd className="font-medium text-foreground">
                         {payment ? formatRupiah(payment.jumlah) : "-"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">
+                        Biaya kelas malam
+                      </dt>
+                      <dd className="font-medium text-foreground">
+                        {booking.biaya_tambahan > 0
+                          ? formatRupiah(booking.biaya_tambahan)
+                          : "-"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">Total paket</dt>
+                      <dd className="font-medium text-foreground">
+                        {paket
+                          ? formatRupiah(paket.harga + booking.biaya_tambahan)
+                          : "-"}
                       </dd>
                     </div>
                     <div>
@@ -338,7 +370,7 @@ export default async function AdminBookingPage({
                         <input type="hidden" name="decision" value="reject" />
                         <ConfirmSubmit
                           title="Tolak booking ini?"
-                          message={`Booking ${booking.kode_booking} akan ditolak, slot dibebaskan, dan pembayaran ditandai ditolak. Tindakan ini tidak dapat dibatalkan.`}
+                          message={`Booking ${booking.kode_booking} akan ditolak, kuota jadwal dibebaskan, dan pembayaran ditandai ditolak. Tindakan ini tidak dapat dibatalkan.`}
                           confirmLabel="Ya, tolak booking"
                           className="rounded-full border border-destructive/40 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
                         >
@@ -363,44 +395,6 @@ export default async function AdminBookingPage({
                           Tandai selesai
                         </button>
                       </form>
-
-                      <details className="min-w-0 md:flex-1">
-                        <summary className="flex w-full cursor-pointer list-none items-center justify-center rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground md:w-auto [&::-webkit-details-marker]:hidden">
-                          Tandai tidak hadir (no-show)
-                        </summary>
-                        <div className="mt-2 rounded-xl border border-border bg-secondary/30 p-3">
-                          <form action={markNoShowAction} className="grid gap-3">
-                            <input
-                              type="hidden"
-                              name="booking_id"
-                              value={booking.id}
-                            />
-                            <label className="block min-w-0 text-xs text-muted-foreground">
-                              <span className="mb-1 block">Kompensasi</span>
-                              <select
-                                name="konfirmasi"
-                                defaultValue="tidak"
-                                className="w-full min-w-0 rounded-xl border border-input bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
-                              >
-                                <option value="tidak">
-                                  Tanpa konfirmasi — sesi hangus
-                                </option>
-                                <option value="ya">
-                                  Dengan konfirmasi — kompensasi 1 jam
-                                </option>
-                              </select>
-                            </label>
-                            <ConfirmSubmit
-                              title="Tandai booking sebagai no-show?"
-                              message={`Booking ${booking.kode_booking} akan ditandai tidak hadir. Status tidak dapat dikembalikan.`}
-                              confirmLabel="Ya, tandai no-show"
-                              className="w-full rounded-full border border-destructive/40 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5 sm:w-auto"
-                            >
-                              Tandai no-show
-                            </ConfirmSubmit>
-                          </form>
-                        </div>
-                      </details>
                     </div>
                   )}
                 </div>

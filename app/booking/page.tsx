@@ -6,7 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { BuktiUpload } from "@/components/bukti-upload";
 import { PaymentInstructions } from "@/components/payment-instructions";
 import { Spinner } from "@/components/spinner";
-import { formatTanggal } from "@/lib/date";
+import { formatTanggal, todayInJakarta } from "@/lib/date";
 import { formatJam, formatRupiah } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/is-configured";
@@ -20,21 +20,25 @@ type Paket = {
   keterangan: string | null;
 };
 
-type Slot = {
-  id: string;
-  tanggal: string;
+type JadwalSlot = {
+  slot_template_id: string;
+  urutan: number;
   jam_mulai: string;
   jam_selesai: string;
-  sesi: string;
+  kapasitas: number;
+  biaya_tambahan: number;
+  terpakai: number;
+  sisa: number;
+  tersedia: boolean;
+};
+
+type BookingResult = {
+  kode_booking: string;
+  biaya_tambahan?: number;
+  total_biaya?: number;
 };
 
 const STEPS = ["Paket", "Jadwal", "Biodata"];
-
-function todayISO() {
-  const d = new Date();
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 10);
-}
 
 export default function BookingPage() {
   const supabase = useMemo(
@@ -44,12 +48,13 @@ export default function BookingPage() {
 
   const [step, setStep] = useState(1);
   const [paketList, setPaketList] = useState<Paket[]>([]);
-  const [slotList, setSlotList] = useState<Slot[]>([]);
+  const [jadwalList, setJadwalList] = useState<JadwalSlot[]>([]);
   const [paketId, setPaketId] = useState("");
-  const [slotId, setSlotId] = useState("");
+  const [slotTemplateId, setSlotTemplateId] = useState("");
   const [tanggal, setTanggal] = useState("");
   const [today, setToday] = useState("");
   const [nama, setNama] = useState("");
+  const [tanggalLahir, setTanggalLahir] = useState("");
   const [noWa, setNoWa] = useState("");
   const [alamat, setAlamat] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,15 +63,18 @@ export default function BookingPage() {
   const [loadingSlot, setLoadingSlot] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ kode_booking: string } | null>(null);
+  const [result, setResult] = useState<BookingResult | null>(null);
   const [copied, setCopied] = useState(false);
 
   const selectedPaket = paketList.find((p) => p.id === paketId) ?? null;
-  const selectedSlot = slotList.find((s) => s.id === slotId) ?? null;
+  const selectedJadwal =
+    jadwalList.find((item) => item.slot_template_id === slotTemplateId) ?? null;
+  const biayaTambahan = selectedJadwal?.biaya_tambahan ?? 0;
+  const totalBiaya = (selectedPaket?.harga ?? 0) + biayaTambahan;
 
   // Inisialisasi tanggal hari ini di sisi klien (hindari `new Date()` saat prerender)
   useEffect(() => {
-    const t = todayISO();
+    const t = todayInJakarta();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setToday(t);
     setTanggal(t);
@@ -97,20 +105,18 @@ export default function BookingPage() {
       });
   }, [supabase]);
 
-  // Ambil slot saat tanggal berubah
+  // Ambil jadwal dan sisa kapasitas saat tanggal berubah.
   useEffect(() => {
     if (!supabase || !tanggal) return;
     let active = true;
 
     supabase
-      .from("slot")
-      .select("*")
-      .eq("tanggal", tanggal)
-      .eq("status", "tersedia")
-      .order("jam_mulai", { ascending: true })
-      .then(({ data }) => {
+      .rpc("get_jadwal_tersedia", { p_tanggal: tanggal })
+      .then(({ data, error }) => {
         if (!active) return;
-        setSlotList(data ?? []);
+        setJadwalList(
+          error ? [] : ((data ?? []) as unknown as JadwalSlot[]),
+        );
         setLoadingSlot(false);
       });
 
@@ -124,8 +130,8 @@ export default function BookingPage() {
       setHint("Pilih salah satu paket terlebih dahulu.");
       return;
     }
-    if (step === 2 && !slotId) {
-      setHint("Pilih salah satu jam yang tersedia.");
+    if (step === 2 && (!slotTemplateId || !selectedJadwal?.tersedia)) {
+      setHint("Pilih salah satu jam yang masih tersedia.");
       return;
     }
     setHint(null);
@@ -136,11 +142,21 @@ export default function BookingPage() {
   function validateBiodata() {
     const e: Record<string, string> = {};
     if (!nama.trim()) e.nama = "Nama lengkap wajib diisi.";
+    if (!tanggalLahir) {
+      e.tanggalLahir = "Tanggal lahir wajib diisi.";
+    } else if (today && tanggalLahir > today) {
+      e.tanggalLahir = "Tanggal lahir tidak boleh di masa depan.";
+    }
     const wa = noWa.replace(/\D/g, "");
     if (!wa) e.noWa = "Nomor WhatsApp wajib diisi.";
     else if (!/^08\d{8,11}$/.test(wa))
       e.noWa =
         "Nomor WhatsApp tidak valid. Gunakan format yang benar, contoh: 081234567890.";
+    if (!alamat.trim()) {
+      e.alamat = "Alamat wajib diisi.";
+    } else if (alamat.trim().length > 500) {
+      e.alamat = "Alamat maksimal 500 karakter.";
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -148,29 +164,82 @@ export default function BookingPage() {
   async function handleSubmit() {
     if (!supabase) return;
     if (!validateBiodata()) return;
+
     setSubmitting(true);
     setSubmitError(null);
-    const { data, error } = await supabase.rpc("create_booking", {
-      p_nama: nama.trim(),
-      p_no_wa: noWa.replace(/\D/g, ""),
-      p_alamat: alamat.trim(),
-      p_paket_id: paketId,
-      p_slot_id: slotId,
-    });
-    setSubmitting(false);
-    if (error) {
-      if (error.message.includes("SLOT_PENUH")) {
-        setSubmitError(
-          "Maaf, slot yang Anda pilih baru saja terisi. Silakan kembali dan pilih jam lain.",
-        );
-      } else {
-        setSubmitError(
-          "Booking belum berhasil diproses. Coba lagi, atau hubungi admin lewat WhatsApp 082182944995.",
-        );
+
+    try {
+      const response = await fetch("/api/booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nama: nama.trim(),
+          no_wa: noWa.replace(/\D/g, ""),
+          tanggal_lahir: tanggalLahir,
+          alamat: alamat.trim(),
+          paket_id: paketId,
+          slot_template_id: slotTemplateId,
+          tanggal_latihan: tanggal,
+        }),
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        message?: string;
+        kode_booking?: string;
+        biaya_tambahan?: number;
+        total_biaya?: number;
+      };
+
+      if (!response.ok) {
+        const message = String(payload.error ?? "");
+
+        if (response.status === 429 || message === "RATE_LIMIT") {
+          setSubmitError(
+            payload.message ??
+              "Terlalu banyak percobaan booking. Coba lagi beberapa menit.",
+          );
+        } else if (message.includes("SLOT_PENUH")) {
+          setSubmitError(
+            "Maaf, jam yang Anda pilih baru saja penuh. Silakan kembali dan pilih jam lain.",
+          );
+        } else if (message.includes("TANGGAL_TIDAK_VALID")) {
+          setSubmitError(
+            "Tanggal latihan tidak valid. Pilih tanggal hari ini atau setelahnya.",
+          );
+        } else if (message.includes("SLOT_TIDAK_DITEMUKAN")) {
+          setSubmitError(
+            "Jadwal yang dipilih tidak tersedia lagi. Silakan pilih jam lain.",
+          );
+        } else if (message.includes("PAKET_TIDAK_DITEMUKAN")) {
+          setSubmitError(
+            "Paket yang dipilih tidak tersedia lagi. Silakan pilih paket lain.",
+          );
+        } else if (message.includes("TANGGAL_LAHIR_WAJIB")) {
+          setSubmitError("Tanggal lahir wajib diisi.");
+        } else if (message.includes("TANGGAL_LAHIR_TIDAK_VALID")) {
+          setSubmitError("Tanggal lahir tidak valid. Periksa kembali.");
+        } else if (message.includes("ALAMAT_WAJIB")) {
+          setSubmitError("Alamat wajib diisi.");
+        } else if (message.includes("ALAMAT_TERLALU_PANJANG")) {
+          setSubmitError("Alamat terlalu panjang. Maksimal 500 karakter.");
+        } else {
+          setSubmitError(
+            payload.message ??
+              "Booking belum berhasil diproses. Coba lagi, atau hubungi admin lewat WhatsApp 082182944995.",
+          );
+        }
+        return;
       }
-      return;
+
+      setResult(payload as BookingResult);
+    } catch {
+      setSubmitError(
+        "Koneksi terputus. Periksa jaringan Anda lalu coba lagi, atau hubungi admin lewat WhatsApp 082182944995.",
+      );
+    } finally {
+      setSubmitting(false);
     }
-    setResult(data as { kode_booking: string });
   }
 
   function copyKode() {
@@ -216,10 +285,21 @@ export default function BookingPage() {
             <span className="animate-zoom-in mx-auto flex size-14 items-center justify-center rounded-full bg-green-100 text-2xl text-green-600">
               ✓
             </span>
-            <h1 className="mt-5 font-display text-3xl font-bold leading-tight">Booking berhasil!</h1>
+            <h1 className="mt-5 font-display text-3xl font-bold leading-tight">Booking berhasil, lakukan pembayaran DP sekarang!</h1>
             <p className="mt-2 text-muted-foreground">
               Simpan kode booking Anda. Gunakan untuk cek status kapan saja.
             </p>
+            {typeof result.total_biaya === "number" && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Total biaya paket:{" "}
+                <strong className="text-foreground">
+                  {formatRupiah(result.total_biaya)}
+                </strong>
+                {result.biaya_tambahan
+                  ? ` (termasuk biaya kelas malam ${formatRupiah(result.biaya_tambahan)})`
+                  : ""}
+              </p>
+            )}
 
             <div className="animate-fade-up mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row" style={{ animationDelay: "100ms" }}>
               <code className="w-full max-w-xs rounded-xl border border-border bg-secondary px-4 py-3 font-mono text-xl font-bold tracking-[0.18em] sm:w-auto sm:px-6 sm:text-2xl sm:tracking-widest">
@@ -405,7 +485,7 @@ export default function BookingPage() {
         {/* Step 2 — Pilih Jadwal */}
         {step === 2 && (
           <section className="animate-page-in mt-10">
-            <h2 className="font-display text-xl font-bold">Pilih jadwal</h2>
+            <h2 className="font-display text-xl font-bold">Pilih jadwal mulai latihan</h2>
             <label className="mt-6 block">
               <span className="text-sm font-medium text-foreground">Tanggal</span>
               <input
@@ -415,8 +495,8 @@ export default function BookingPage() {
                 onChange={(e) => {
                   const value = e.target.value;
                   setTanggal(value);
-                  setSlotId("");
-                  setSlotList([]);
+                  setSlotTemplateId("");
+                  setJadwalList([]);
                   setLoadingSlot(Boolean(value));
                 }}
                 className="mt-2 w-full rounded-xl border border-input bg-white px-4 py-3 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
@@ -430,43 +510,56 @@ export default function BookingPage() {
                   <div key={i} className="h-14 animate-pulse rounded-xl bg-muted" />
                 ))}
               </div>
-            ) : slotList.length === 0 ? (
+            ) : jadwalList.length === 0 ? (
               <p className="mt-3 rounded-xl bg-muted px-4 py-3 text-sm text-muted-foreground">
-                Belum ada slot tersedia pada tanggal ini. Coba tanggal lain.
+                Belum ada jadwal aktif. Hubungi admin lewat WhatsApp{" "}
+                <span className="font-medium">082182944995</span>.
               </p>
             ) : (
               <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {slotList.map((slot, index) => {
-                  const selected = slotId === slot.id;
+                {jadwalList.map((item, index) => {
+                  const selected = slotTemplateId === item.slot_template_id;
                   return (
                     <button
-                      key={slot.id}
+                      key={item.slot_template_id}
                       type="button"
                       onClick={() => {
-                        setSlotId(slot.id);
+                        if (!item.tersedia) return;
+                        setSlotTemplateId(item.slot_template_id);
                         setHint(null);
                       }}
+                      disabled={!item.tersedia}
                       aria-pressed={selected}
                       className={`animate-fade-up rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
                         selected
                           ? "border-primary bg-primary text-white"
-                          : "border-border bg-white hover:border-primary/50"
+                          : item.tersedia
+                            ? "border-border bg-white hover:border-primary/50"
+                            : "cursor-not-allowed border-border bg-muted text-muted-foreground"
                       }`}
                       style={{ animationDelay: `${index * 45}ms` }}
                     >
-                      {formatJam(slot.jam_mulai)}–{formatJam(slot.jam_selesai)}
+                      {formatJam(item.jam_mulai)}–{formatJam(item.jam_selesai)}
                       <span
                         className={`block text-xs ${
-                          selected ? "text-blue-100" : "text-muted-foreground"
+                          selected
+                            ? "text-blue-100"
+                            : "text-muted-foreground"
                         }`}
                       >
-                        {slot.sesi === "malam" ? "Kelas malam" : "Reguler"}
+                        {item.tersedia
+                          ? `Sisa ${item.sisa} dari ${item.kapasitas}`
+                          : "Penuh"}
                       </span>
                     </button>
                   );
                 })}
               </div>
             )}
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              Jadwal ini adalah jadwal awal, jadwal pertemuan berikutnya dapat
+              diatur dengan admin.
+            </p>
           </section>
         )}
 
@@ -498,6 +591,43 @@ export default function BookingPage() {
 
               <label className="block">
                 <span className="text-sm font-medium text-foreground">
+                  Tanggal lahir <span className="text-destructive">*</span>
+                </span>
+                <input
+                  type="date"
+                  value={tanggalLahir}
+                  max={today || undefined}
+                  autoComplete="bday"
+                  onChange={(e) => {
+                    setTanggalLahir(e.target.value);
+                    setErrors((prev) => ({ ...prev, tanggalLahir: "" }));
+                  }}
+                  aria-invalid={errors.tanggalLahir ? true : undefined}
+                  aria-describedby={
+                    errors.tanggalLahir ? "tanggal-lahir-error" : undefined
+                  }
+                  className={`mt-2 w-full rounded-xl border bg-white px-4 py-3 outline-none focus:ring-2 ${
+                    errors.tanggalLahir
+                      ? "border-destructive focus:border-destructive focus:ring-destructive/30"
+                      : "border-input focus:border-primary focus:ring-primary/30"
+                  }`}
+                />
+                {errors.tanggalLahir ? (
+                  <p
+                    id="tanggal-lahir-error"
+                    className="mt-1.5 text-sm text-destructive"
+                  >
+                    {errors.tanggalLahir}
+                  </p>
+                ) : (
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Sesuai dokumen identitas Anda.
+                  </p>
+                )}
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-medium text-foreground">
                   Nomor WhatsApp <span className="text-destructive">*</span>
                 </span>
                 <input
@@ -523,15 +653,31 @@ export default function BookingPage() {
 
               <label className="block">
                 <span className="text-sm font-medium text-foreground">
-                  Alamat <span className="text-muted-foreground">(opsional)</span>
+                  Alamat <span className="text-destructive">*</span>
                 </span>
                 <textarea
                   value={alamat}
-                  onChange={(e) => setAlamat(e.target.value)}
-                  rows={2}
+                  onChange={(e) => {
+                    setAlamat(e.target.value);
+                    setErrors((prev) => ({ ...prev, alamat: "" }));
+                  }}
+                  rows={3}
+                  maxLength={500}
+                  autoComplete="street-address"
                   placeholder="Alamat tempat tinggal / penjemputan"
-                  className="mt-2 w-full rounded-xl border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                  aria-invalid={errors.alamat ? true : undefined}
+                  aria-describedby={errors.alamat ? "alamat-error" : undefined}
+                  className={`mt-2 w-full rounded-xl border bg-white px-4 py-3 outline-none focus:ring-2 ${
+                    errors.alamat
+                      ? "border-destructive focus:border-destructive focus:ring-destructive/30"
+                      : "border-input focus:border-primary focus:ring-primary/30"
+                  }`}
                 />
+                {errors.alamat && (
+                  <p id="alamat-error" className="mt-1.5 text-sm text-destructive">
+                    {errors.alamat}
+                  </p>
+                )}
               </label>
             </div>
 
@@ -555,16 +701,16 @@ export default function BookingPage() {
                   </dd>
                 </div>
                 <div className="flex items-start justify-between gap-4">
-                  <dt className="shrink-0 text-muted-foreground">Jadwal</dt>
+                  <dt className="shrink-0 text-muted-foreground">Jadwal awal</dt>
                   <dd className="min-w-0 text-right font-medium text-foreground">
-                    {selectedSlot ? (
+                    {selectedJadwal && tanggal ? (
                       <>
                         <span className="block">
-                          {formatTanggal(selectedSlot.tanggal)}
+                          {formatTanggal(tanggal)}
                         </span>
                         <span className="block">
-                          {formatJam(selectedSlot.jam_mulai)}–
-                          {formatJam(selectedSlot.jam_selesai)}
+                          {formatJam(selectedJadwal.jam_mulai)}–
+                          {formatJam(selectedJadwal.jam_selesai)}
                         </span>
                       </>
                     ) : (
@@ -583,6 +729,24 @@ export default function BookingPage() {
                   <dt className="shrink-0 text-muted-foreground">Harga paket</dt>
                   <dd className="min-w-0 text-right font-medium text-foreground">
                     {selectedPaket ? formatRupiah(selectedPaket.harga) : "-"}
+                  </dd>
+                </div>
+                {biayaTambahan > 0 && (
+                  <div className="flex items-center justify-between gap-4">
+                    <dt className="shrink-0 text-muted-foreground">
+                      Biaya kelas malam
+                    </dt>
+                    <dd className="min-w-0 text-right font-medium text-foreground">
+                      {formatRupiah(biayaTambahan)}
+                    </dd>
+                  </div>
+                )}
+                <div className="flex items-center justify-between gap-4 border-t border-border pt-3">
+                  <dt className="shrink-0 font-medium text-foreground">
+                    Total biaya
+                  </dt>
+                  <dd className="min-w-0 text-right font-display text-lg font-bold text-foreground">
+                    {selectedPaket ? formatRupiah(totalBiaya) : "-"}
                   </dd>
                 </div>
               </dl>

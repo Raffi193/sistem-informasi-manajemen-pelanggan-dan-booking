@@ -6,5 +6,12 @@ import { supabaseAnonKey, supabaseUrl } from "./config";
  * Menggunakan anon/publishable key — aman untuk operasi publik/guest.
  */
 export function createClient() {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: {
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7,
+    },
+  });
 }

@@ -16,28 +16,7 @@ export function transmisiLabel(value: string): string {
   );
 }
 
-export const SLOT_STATUS_OPTIONS = [
-  { value: "tersedia", label: "Tersedia" },
-  { value: "penuh", label: "Penuh" },
-  { value: "ditutup", label: "Ditutup" },
-] as const;
-
-export type SlotStatus = (typeof SLOT_STATUS_OPTIONS)[number]["value"];
-
-export function isSlotStatus(value: string): value is SlotStatus {
-  return SLOT_STATUS_OPTIONS.some((option) => option.value === value);
-}
-
-export const SLOT_SESI_OPTIONS = [
-  { value: "reguler", label: "Reguler" },
-  { value: "malam", label: "Malam" },
-] as const;
-
-export type SlotSesi = (typeof SLOT_SESI_OPTIONS)[number]["value"];
-
-export function isSlotSesi(value: string): value is SlotSesi {
-  return SLOT_SESI_OPTIONS.some((option) => option.value === value);
-}
+export const SLOT_CAPACITY_MAX = 4;
 
 export type PaketRow = {
   id: string;
@@ -61,26 +40,23 @@ export type InstrukturRow = {
   id: string;
   nama: string;
   no_wa: string | null;
+  foto_url: string | null;
+  sertifikat_url: string | null;
   status_aktif: boolean;
 };
 
-export type SlotRow = {
+export type SlotTemplateRow = {
   id: string;
-  tanggal: string;
+  urutan: number;
   jam_mulai: string;
   jam_selesai: string;
-  sesi: string;
-  kendaraan_id: string | null;
-  instruktur_id: string | null;
-  status: SlotStatus;
-  kendaraan_nama: string | null;
-  kendaraan_plat: string | null;
-  instruktur_nama: string | null;
+  kapasitas: number;
+  status_aktif: boolean;
 };
 
 export type MasterData = {
   paket: PaketRow[];
   kendaraan: KendaraanRow[];
   instruktur: InstrukturRow[];
-  slot: SlotRow[];
+  slotTemplate: SlotTemplateRow[];
 };

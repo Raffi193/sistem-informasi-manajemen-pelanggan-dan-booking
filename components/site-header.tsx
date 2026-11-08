@@ -6,6 +6,7 @@ const navItems = [
   { href: "/#cara-kerja", label: "Cara Kerja" },
   { href: "/#keunggulan", label: "Keunggulan" },
   { href: "/#paket", label: "Paket" },
+  { href: "/#instruktur", label: "Instruktur" },
   { href: "/status", label: "Cek Status" },
 ];
 

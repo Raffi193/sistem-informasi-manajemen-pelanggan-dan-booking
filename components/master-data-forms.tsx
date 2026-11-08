@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, type ReactNode } from "react";
+import { useActionState, useEffect, useState, type ReactNode } from "react";
 import {
   saveInstrukturAction,
   saveKendaraanAction,
   savePaketAction,
-  saveSlotAction,
+  saveSlotTemplateAction,
 } from "@/app/admin/master/actions";
 import { Spinner } from "@/components/spinner";
 import {
@@ -16,15 +16,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { initialActionState, type ActionState } from "@/lib/action-state";
-import { todayInJakarta } from "@/lib/date";
+import { isImageUrl } from "@/lib/media";
 import {
-  SLOT_SESI_OPTIONS,
-  SLOT_STATUS_OPTIONS,
+  SLOT_CAPACITY_MAX,
   TRANSMISI_OPTIONS,
   type InstrukturRow,
   type KendaraanRow,
   type PaketRow,
-  type SlotRow,
+  type SlotTemplateRow,
 } from "@/lib/master-data";
 
 type MasterAction = (
@@ -303,7 +302,7 @@ export function KendaraanForm({
           {isEdit ? "Edit kendaraan" : "Tambah kendaraan"}
         </DialogTitle>
         <DialogDescription>
-          Kendaraan dapat dipasangkan ke slot jadwal kursus.
+          Data kendaraan operasional LPK CV. Fathan.
         </DialogDescription>
       </DialogHeader>
 
@@ -366,7 +365,7 @@ export function KendaraanForm({
 
       <ActiveCheckbox
         defaultChecked={kendaraan?.status_aktif ?? true}
-        description="Kendaraan nonaktif tidak disarankan dipakai untuk slot baru."
+        description="Kendaraan nonaktif tidak ditampilkan sebagai pilihan operasional."
       />
 
       <FormActions
@@ -374,6 +373,53 @@ export function KendaraanForm({
         submitLabel={isEdit ? "Simpan perubahan" : "Tambah kendaraan"}
       />
     </form>
+  );
+}
+
+function CurrentMedia({
+  url,
+  label,
+  removeName,
+}: {
+  url: string;
+  label: string;
+  removeName: "hapus_foto" | "hapus_sertifikat";
+}) {
+  const image = isImageUrl(url);
+
+  return (
+    <div className="mt-2 rounded-xl border border-border bg-secondary/30 p-2.5">
+      {image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt={label}
+          className="h-24 w-full rounded-lg border border-border bg-white object-contain"
+        />
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          File saat ini tersimpan.
+        </p>
+      )}
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-medium text-primary hover:underline"
+        >
+          Lihat {label.toLowerCase()}
+        </a>
+        <label className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            name={removeName}
+            className="size-3.5 accent-primary"
+          />
+          Hapus
+        </label>
+      </div>
+    </div>
   );
 }
 
@@ -390,21 +436,49 @@ export function InstrukturForm({
   );
   const errors = state.fieldErrors ?? {};
   const isEdit = Boolean(instruktur);
+  const [fileError, setFileError] = useState<string | null>(null);
+
+  function validateTotalFileSize(event: React.FormEvent<HTMLFormElement>) {
+    const form = event.currentTarget;
+    const fotoInput = form.elements.namedItem("foto") as HTMLInputElement | null;
+    const sertifikatInput = form.elements.namedItem(
+      "sertifikat",
+    ) as HTMLInputElement | null;
+    const total =
+      (fotoInput?.files?.[0]?.size ?? 0) +
+      (sertifikatInput?.files?.[0]?.size ?? 0);
+
+    if (total > 4 * 1024 * 1024) {
+      event.preventDefault();
+      setFileError(
+        "Total ukuran foto dan sertifikat maksimal 4 MB. Unggah satu file terlebih dahulu, lalu edit lagi untuk file kedua.",
+      );
+      return;
+    }
+
+    setFileError(null);
+  }
 
   return (
-    <form action={formAction} className="space-y-4" noValidate>
+    <form
+      action={formAction}
+      onSubmit={validateTotalFileSize}
+      className="space-y-4"
+      noValidate
+    >
       <DialogHeader>
         <DialogTitle>
           {isEdit ? "Edit instruktur" : "Tambah instruktur"}
         </DialogTitle>
         <DialogDescription>
-          Instruktur dapat dipasangkan ke slot jadwal kursus.
+          Data instruktur yang mengajar di LPK CV. Fathan.
         </DialogDescription>
       </DialogHeader>
 
       {state.status === "error" && state.message && (
         <FormError message={state.message} />
       )}
+      {fileError && <FormError message={fileError} />}
 
       {instruktur && <input type="hidden" name="id" value={instruktur.id} />}
 
@@ -441,9 +515,61 @@ export function InstrukturForm({
         />
       </Field>
 
+      <Field
+        label="Foto instruktur (opsional)"
+        htmlFor="instruktur-foto"
+        error={errors.foto}
+        hint="JPG, PNG, atau WEBP. Total foto + sertifikat maksimal 4 MB. Kosongkan jika tidak mengganti."
+      >
+        {instruktur?.foto_url && (
+          <CurrentMedia
+            url={instruktur.foto_url}
+            label="Foto"
+            removeName="hapus_foto"
+          />
+        )}
+        <input
+          id="instruktur-foto"
+          name="foto"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          aria-invalid={errors.foto ? true : undefined}
+          aria-describedby={
+            errors.foto ? "instruktur-foto-error" : undefined
+          }
+          className="mt-2 block w-full cursor-pointer rounded-xl border border-input bg-white px-3.5 py-2.5 text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-primary hover:file:bg-primary/15"
+        />
+      </Field>
+
+      <Field
+        label="Sertifikat (opsional)"
+        htmlFor="instruktur-sertifikat"
+        error={errors.sertifikat}
+        hint="JPG, PNG, WEBP, atau PDF. Total foto + sertifikat maksimal 4 MB. Kosongkan jika tidak mengganti."
+      >
+        {instruktur?.sertifikat_url && (
+          <CurrentMedia
+            url={instruktur.sertifikat_url}
+            label="Sertifikat"
+            removeName="hapus_sertifikat"
+          />
+        )}
+        <input
+          id="instruktur-sertifikat"
+          name="sertifikat"
+          type="file"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          aria-invalid={errors.sertifikat ? true : undefined}
+          aria-describedby={
+            errors.sertifikat ? "instruktur-sertifikat-error" : undefined
+          }
+          className="mt-2 block w-full cursor-pointer rounded-xl border border-input bg-white px-3.5 py-2.5 text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-primary hover:file:bg-primary/15"
+        />
+      </Field>
+
       <ActiveCheckbox
         defaultChecked={instruktur?.status_aktif ?? true}
-        description="Instruktur nonaktif tidak disarankan dipakai untuk slot baru."
+        description="Instruktur nonaktif tidak ditampilkan sebagai pilihan operasional."
       />
 
       <FormActions
@@ -454,30 +580,30 @@ export function InstrukturForm({
   );
 }
 
-export function SlotForm({
-  slot,
-  kendaraan,
-  instruktur,
+export function SlotTemplateForm({
+  template,
   onSuccess,
 }: {
-  slot: SlotRow | null;
-  kendaraan: KendaraanRow[];
-  instruktur: InstrukturRow[];
+  template: SlotTemplateRow | null;
   onSuccess: () => void;
 }) {
   const { state, formAction, pending } = useMasterForm(
-    saveSlotAction,
+    saveSlotTemplateAction,
     onSuccess,
   );
   const errors = state.fieldErrors ?? {};
-  const isEdit = Boolean(slot);
+  const isEdit = Boolean(template);
 
   return (
     <form action={formAction} className="space-y-4" noValidate>
       <DialogHeader>
-        <DialogTitle>{isEdit ? "Edit slot jadwal" : "Tambah slot jadwal"}</DialogTitle>
+        <DialogTitle>
+          {isEdit ? "Edit jadwal latihan" : "Tambah jadwal latihan"}
+        </DialogTitle>
         <DialogDescription>
-          Slot berstatus tersedia akan muncul di pilihan jadwal customer.
+          Jam ini berlaku otomatis untuk semua tanggal. Kapasitas dihitung per
+          tanggal dan jam. Perubahan jam juga mengikuti booking yang memakai
+          jadwal ini.
         </DialogDescription>
       </DialogHeader>
 
@@ -485,28 +611,21 @@ export function SlotForm({
         <FormError message={state.message} />
       )}
 
-      {slot && <input type="hidden" name="id" value={slot.id} />}
-
-      <Field label="Tanggal" htmlFor="slot-tanggal" error={errors.tanggal}>
-        <input
-          id="slot-tanggal"
-          name="tanggal"
-          type="date"
-          required
-          defaultValue={slot?.tanggal ?? todayInJakarta()}
-          aria-invalid={errors.tanggal ? true : undefined}
-          className={inputClass}
-        />
-      </Field>
+      {template && <input type="hidden" name="id" value={template.id} />}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Jam mulai" htmlFor="slot-jam-mulai" error={errors.jam_mulai}>
+        <Field
+          label="Jam mulai"
+          htmlFor="slot-template-mulai"
+          error={errors.jam_mulai}
+        >
           <input
-            id="slot-jam-mulai"
+            id="slot-template-mulai"
             name="jam_mulai"
             type="time"
             required
-            defaultValue={slot?.jam_mulai.slice(0, 5) ?? "08:00"}
+            step={60}
+            defaultValue={template ? template.jam_mulai.slice(0, 5) : "08:00"}
             aria-invalid={errors.jam_mulai ? true : undefined}
             className={inputClass}
           />
@@ -514,120 +633,49 @@ export function SlotForm({
 
         <Field
           label="Jam selesai"
-          htmlFor="slot-jam-selesai"
+          htmlFor="slot-template-selesai"
           error={errors.jam_selesai}
         >
           <input
-            id="slot-jam-selesai"
+            id="slot-template-selesai"
             name="jam_selesai"
             type="time"
             required
-            defaultValue={slot?.jam_selesai.slice(0, 5) ?? "09:00"}
+            step={60}
+            defaultValue={template ? template.jam_selesai.slice(0, 5) : "10:00"}
             aria-invalid={errors.jam_selesai ? true : undefined}
             className={inputClass}
           />
         </Field>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Sesi" htmlFor="slot-sesi" error={errors.sesi}>
-          <select
-            id="slot-sesi"
-            name="sesi"
-            required
-            defaultValue={slot?.sesi ?? "reguler"}
-            aria-invalid={errors.sesi ? true : undefined}
-            className={inputClass}
-          >
-            {SLOT_SESI_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </Field>
+      <Field
+        label="Kapasitas per tanggal"
+        htmlFor="slot-template-kapasitas"
+        error={errors.kapasitas}
+        hint={`Maksimal ${SLOT_CAPACITY_MAX} booking pada tanggal dan jam yang sama.`}
+      >
+        <input
+          id="slot-template-kapasitas"
+          name="kapasitas"
+          type="number"
+          required
+          min={1}
+          max={SLOT_CAPACITY_MAX}
+          defaultValue={template?.kapasitas ?? SLOT_CAPACITY_MAX}
+          aria-invalid={errors.kapasitas ? true : undefined}
+          className={inputClass}
+        />
+      </Field>
 
-        <Field label="Status" htmlFor="slot-status" error={errors.status}>
-          <select
-            id="slot-status"
-            name="status"
-            required
-            defaultValue={slot?.status ?? "tersedia"}
-            aria-invalid={errors.status ? true : undefined}
-            className={inputClass}
-          >
-            {SLOT_STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field
-          label="Kendaraan (opsional)"
-          htmlFor="slot-kendaraan"
-          error={errors.kendaraan_id}
-        >
-          <select
-            id="slot-kendaraan"
-            name="kendaraan_id"
-            defaultValue={slot?.kendaraan_id ?? ""}
-            aria-invalid={errors.kendaraan_id ? true : undefined}
-            className={inputClass}
-          >
-            <option value="">Tanpa kendaraan</option>
-            {kendaraan.map((item) => (
-              <option
-                key={item.id}
-                value={item.id}
-                disabled={!item.status_aktif && item.id !== slot?.kendaraan_id}
-              >
-                {item.nama}
-                {item.plat ? ` — ${item.plat}` : ""}
-                {item.status_aktif ? "" : " (nonaktif)"}
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <Field
-          label="Instruktur (opsional)"
-          htmlFor="slot-instruktur"
-          error={errors.instruktur_id}
-        >
-          <select
-            id="slot-instruktur"
-            name="instruktur_id"
-            defaultValue={slot?.instruktur_id ?? ""}
-            aria-invalid={errors.instruktur_id ? true : undefined}
-            className={inputClass}
-          >
-            <option value="">Tanpa instruktur</option>
-            {instruktur.map((item) => (
-              <option
-                key={item.id}
-                value={item.id}
-                disabled={!item.status_aktif && item.id !== slot?.instruktur_id}
-              >
-                {item.nama}
-                {item.status_aktif ? "" : " (nonaktif)"}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div>
-
-      <p className="rounded-xl bg-secondary/60 px-3.5 py-3 text-xs leading-relaxed text-muted-foreground">
-        Slot yang sudah memiliki booking tidak dapat dibuka kembali menjadi
-        tersedia. Gunakan status penuh atau ditutup untuk menjaga jadwal.
-      </p>
+      <ActiveCheckbox
+        defaultChecked={template?.status_aktif ?? true}
+        description="Jika nonaktif, jam ini tidak muncul di halaman booking."
+      />
 
       <FormActions
         pending={pending}
-        submitLabel={isEdit ? "Simpan perubahan" : "Tambah slot"}
+        submitLabel={isEdit ? "Simpan perubahan" : "Tambah jadwal"}
       />
     </form>
   );

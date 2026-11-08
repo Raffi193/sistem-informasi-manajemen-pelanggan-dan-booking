@@ -38,6 +38,14 @@ type ReportBooking = {
 type ReportCustomer = { status: string };
 type ReportFollowUp = { jenis: string | null };
 
+// Status yang tidak ditampilkan pada ringkasan laporan.
+const REPORT_CUSTOMER_STATUSES = CUSTOMER_STATUSES.filter(
+  (status) => status.value !== "batal" && status.value !== "calon",
+);
+const REPORT_BOOKING_STATUSES = BOOKING_STATUSES.filter(
+  (status) => status !== "selesai" && status !== "batal",
+);
+
 export default async function LaporanPage({
   searchParams,
 }: {
@@ -102,12 +110,12 @@ export default async function LaporanPage({
 
   const totalBooking = bookingRows.length;
   const totalNewCustomers = newCustomers.length;
+  // Customer terdaftar = customer yang sudah disetujui admin (aktif/selesai).
+  const totalRegisteredCustomers = REPORT_CUSTOMER_STATUSES.reduce(
+    (total, status) => total + customerStatusCounts[status.value],
+    0,
+  );
   const totalFollowUp = followUpTypes.length;
-  const customersWhoBooked = new Set(
-    bookingRows
-      .map((row) => row.customer_id)
-      .filter((id): id is string => Boolean(id)),
-  ).size;
 
   const previous = previousMonthRange(today);
   const presets = [
@@ -215,12 +223,9 @@ export default async function LaporanPage({
       )}
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
-        <ReportStat label="Total booking" value={totalBooking} accent />
-        <ReportStat label="Disetujui" value={bookingCounts.disetujui} />
-        <ReportStat label="Selesai" value={bookingCounts.selesai} />
-        <ReportStat label="Customer baru" value={totalNewCustomers} />
-        <ReportStat label="Customer yang booking" value={customersWhoBooked} />
-        <ReportStat label="Total follow-up" value={totalFollowUp} />
+        <ReportStat label="Customer Baru" value={totalNewCustomers} />
+        <ReportStat label="Kursus Selesai" value={bookingCounts.selesai} />
+        <ReportStat label="Total Follow-up Customer" value={totalFollowUp} />
       </div>
 
       {totalBooking === 0 && totalNewCustomers === 0 && totalFollowUp === 0 && (
@@ -231,11 +236,11 @@ export default async function LaporanPage({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <ReportTable
-          title="Booking per status"
+          title="Booking per Status"
           description={`${totalBooking} booking pada periode ini`}
           total={totalBooking}
         >
-          {BOOKING_STATUSES.map((status) => (
+          {REPORT_BOOKING_STATUSES.map((status) => (
             <ReportRow
               key={status}
               label={<StatusBadge status={status} />}
@@ -246,23 +251,23 @@ export default async function LaporanPage({
         </ReportTable>
 
         <ReportTable
-          title="Customer baru per status"
-          description={`${totalNewCustomers} customer terdaftar pada periode ini`}
-          total={totalNewCustomers}
+          title="Jumlah Customer per Status"
+          description={`${totalRegisteredCustomers} customer terdaftar pada periode ini`}
+          total={totalRegisteredCustomers}
         >
-          {CUSTOMER_STATUSES.map((status) => (
+          {REPORT_CUSTOMER_STATUSES.map((status) => (
             <ReportRow
               key={status.value}
               label={<CustomerStatusBadge status={status.value} />}
               value={customerStatusCounts[status.value]}
-              total={totalNewCustomers}
+              total={totalRegisteredCustomers}
             />
           ))}
         </ReportTable>
 
         <ReportTable
-          title="Follow-up per jenis"
-          description={`${totalFollowUp} follow-up tercatat pada periode ini`}
+          title="Jenis Follow-up per Customer"
+          description={`${totalFollowUp} follow-up customer tercatat pada periode ini`}
           total={totalFollowUp}
           className="lg:col-span-2"
         >

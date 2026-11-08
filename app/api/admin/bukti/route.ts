@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAdminClaims } from "@/lib/auth";
 import { createAdminClient, isServiceConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,7 +19,13 @@ export async function GET(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (
+    !user ||
+    !isAdminClaims({
+      email: user.email,
+      app_metadata: user.app_metadata,
+    })
+  ) {
     return new NextResponse("Tidak diizinkan", { status: 401 });
   }
 

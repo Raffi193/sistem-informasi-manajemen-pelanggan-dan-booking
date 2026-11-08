@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { AdminNav } from "@/components/admin-nav";
 import { PageTransition } from "@/components/page-transition";
+import { isAdminClaims } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { signOutAction } from "./actions";
 
@@ -32,6 +33,7 @@ export default async function AdminLayout({
 
   // Pertahanan berlapis: proxy sudah menjaga, tetapi tetap diverifikasi di sini.
   if (!claims) redirect("/login");
+  if (!isAdminClaims(claims)) redirect("/login?error=not-admin");
 
   const email = typeof claims.email === "string" ? claims.email : "Admin";
 

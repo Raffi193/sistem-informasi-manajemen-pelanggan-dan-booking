@@ -1,10 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FaqAccordion } from "@/components/faq-accordion";
+import { InstructorCarousel } from "@/components/instructor-carousel";
 import { Parallax } from "@/components/parallax";
 import { Reveal } from "@/components/reveal";
 import { SiteHeader } from "@/components/site-header";
 import { TextReveal } from "@/components/text-reveal";
+import { getInstrukturAktif } from "@/lib/data/instruktur";
 import { getPaketAktif } from "@/lib/data/paket";
 import { formatRupiah } from "@/lib/format";
 
@@ -15,7 +17,7 @@ const steps = [
   },
   {
     title: "Pilih jadwal",
-    desc: "Lihat slot yang tersedia secara real-time dan pilih waktu yang sesuai.",
+    desc: "Lihat jadwal dan sisa kuota secara real-time, lalu pilih waktu yang sesuai.",
   },
   {
     title: "Booking & bayar DP",
@@ -25,7 +27,7 @@ const steps = [
 
 const keunggulan = [
   {
-    title: "Cek slot real-time",
+    title: "Cek jadwal real-time",
     desc: "Lihat jadwal yang tersedia langsung dari website, tanpa menunggu balasan admin.",
   },
   {
@@ -46,7 +48,10 @@ const labelTransmisi = (transmisi: string) =>
       : "Manual";
 
 export default async function Home() {
-  const paketList = await getPaketAktif();
+  const [paketList, instrukturList] = await Promise.all([
+    getPaketAktif(),
+    getInstrukturAktif(),
+  ]);
 
   return (
     <>
@@ -71,7 +76,7 @@ export default async function Home() {
               className="animate-fade-up mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground"
               style={{ animationDelay: "120ms" }}
             >
-              Pilih paket, lihat slot yang tersedia, dan booking jadwal kursus
+              Pilih paket, lihat jam yang tersedia, dan booking jadwal kursus
               langsung dari website, tanpa bolak-balik konfirmasi ke admin.
             </p>
             <div
@@ -237,6 +242,26 @@ export default async function Home() {
             )}
           </div>
         </section>
+
+        {/* Instruktur */}
+        {instrukturList.length > 0 && (
+          <section id="instruktur" className="px-4 pb-24">
+            <div className="mx-auto max-w-6xl">
+              <Reveal className="mb-10 text-center">
+                <h2 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
+                  Instruktur berpengalaman
+                </h2>
+                <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+                  Belajar langsung bersama instruktur bersertifikat LPK CV.
+                  Fathan.
+                </p>
+              </Reveal>
+              <Reveal variant="zoom">
+                <InstructorCarousel instrukturList={instrukturList} />
+              </Reveal>
+            </div>
+          </section>
+        )}
 
         {/* Lokasi & Jam — info dunia nyata yang mudah dipahami */}
         <section id="lokasi" className="overflow-x-clip px-4 pb-24">

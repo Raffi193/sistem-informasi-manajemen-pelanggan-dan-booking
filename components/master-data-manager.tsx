@@ -14,26 +14,25 @@ import {
   deleteInstrukturAction,
   deleteKendaraanAction,
   deletePaketAction,
-  deleteSlotAction,
+  deleteSlotTemplateAction,
 } from "@/app/admin/master/actions";
 import { DeleteMasterDataButton } from "@/components/delete-master-data";
 import {
   InstrukturForm,
   KendaraanForm,
   PaketForm,
-  SlotForm,
+  SlotTemplateForm,
 } from "@/components/master-data-forms";
-import { StatusBadge } from "@/components/status-badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { formatTanggal } from "@/lib/date";
 import { formatJam, formatRupiah } from "@/lib/format";
 import {
+  SLOT_CAPACITY_MAX,
   transmisiLabel,
   type InstrukturRow,
   type KendaraanRow,
   type MasterData,
   type PaketRow,
-  type SlotRow,
+  type SlotTemplateRow,
 } from "@/lib/master-data";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +40,7 @@ type DialogState =
   | { entity: "paket"; row: PaketRow | null }
   | { entity: "kendaraan"; row: KendaraanRow | null }
   | { entity: "instruktur"; row: InstrukturRow | null }
-  | { entity: "slot"; row: SlotRow | null }
+  | { entity: "slotTemplate"; row: SlotTemplateRow | null }
   | null;
 
 const addButtonClass =
@@ -291,7 +290,7 @@ export function MasterDataManager({ data }: { data: MasterData }) {
                       <DeleteMasterDataButton
                         id={row.id}
                         entityLabel={`kendaraan ${row.nama}`}
-                        description={`Kendaraan ${row.nama} akan dihapus permanen. Kendaraan yang masih dipakai slot tidak dapat dihapus.`}
+                        description={`Kendaraan ${row.nama} akan dihapus permanen.`}
                         action={deleteKendaraanAction}
                       />
                     </RowActions>
@@ -348,7 +347,7 @@ export function MasterDataManager({ data }: { data: MasterData }) {
                             <DeleteMasterDataButton
                               id={row.id}
                               entityLabel={`kendaraan ${row.nama}`}
-                              description={`Kendaraan ${row.nama} akan dihapus permanen. Kendaraan yang masih dipakai slot tidak dapat dihapus.`}
+                              description={`Kendaraan ${row.nama} akan dihapus permanen.`}
                               action={deleteKendaraanAction}
                             />
                           </RowActions>
@@ -391,6 +390,10 @@ export function MasterDataManager({ data }: { data: MasterData }) {
                       <p className="mt-1 text-xs text-muted-foreground">
                         {row.no_wa ?? "Tanpa nomor WhatsApp"}
                       </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Foto: {row.foto_url ? "ada" : "belum"} · Sertifikat:{" "}
+                        {row.sertifikat_url ? "ada" : "belum"}
+                      </p>
                     </div>
                     <RowActions
                       editLabel={`Edit instruktur ${row.nama}`}
@@ -399,7 +402,7 @@ export function MasterDataManager({ data }: { data: MasterData }) {
                       <DeleteMasterDataButton
                         id={row.id}
                         entityLabel={`instruktur ${row.nama}`}
-                        description={`Instruktur ${row.nama} akan dihapus permanen. Instruktur yang masih dipakai slot tidak dapat dihapus.`}
+                        description={`Instruktur ${row.nama} akan dihapus permanen.`}
                         action={deleteInstrukturAction}
                       />
                     </RowActions>
@@ -418,6 +421,7 @@ export function MasterDataManager({ data }: { data: MasterData }) {
                 <tr>
                   <th className="px-5 py-3 font-medium">Nama</th>
                   <th className="px-5 py-3 font-medium">WhatsApp</th>
+                  <th className="px-5 py-3 font-medium">Media</th>
                   <th className="px-5 py-3 font-medium">Status</th>
                   <th className="px-5 py-3 text-right font-medium">Aksi</th>
                 </tr>
@@ -425,7 +429,7 @@ export function MasterDataManager({ data }: { data: MasterData }) {
               <tbody className="divide-y divide-border">
                 {data.instruktur.length === 0 ? (
                   <tr>
-                    <td colSpan={4}>
+                    <td colSpan={5}>
                       <EmptyState>
                         Belum ada instruktur. Tambahkan instruktur pertama.
                       </EmptyState>
@@ -437,6 +441,11 @@ export function MasterDataManager({ data }: { data: MasterData }) {
                       <td className="px-5 py-3 font-medium">{row.nama}</td>
                       <td className="px-5 py-3 text-muted-foreground">
                         {row.no_wa ?? "-"}
+                      </td>
+                      <td className="px-5 py-3 text-xs text-muted-foreground">
+                        Foto: {row.foto_url ? "ada" : "belum"}
+                        <br />
+                        Sertifikat: {row.sertifikat_url ? "ada" : "belum"}
                       </td>
                       <td className="px-5 py-3">
                         <ActiveBadge active={row.status_aktif} />
@@ -452,7 +461,7 @@ export function MasterDataManager({ data }: { data: MasterData }) {
                             <DeleteMasterDataButton
                               id={row.id}
                               entityLabel={`instruktur ${row.nama}`}
-                              description={`Instruktur ${row.nama} akan dihapus permanen. Instruktur yang masih dipakai slot tidak dapat dihapus.`}
+                              description={`Instruktur ${row.nama} akan dihapus permanen.`}
                               action={deleteInstrukturAction}
                             />
                           </RowActions>
@@ -467,54 +476,56 @@ export function MasterDataManager({ data }: { data: MasterData }) {
         </SectionCard>
 
         <SectionCard
-          title="Slot jadwal"
-          description={`${data.slot.length} slot ditampilkan`}
+          title="Jadwal kursus"
+          description={`${data.slotTemplate.length} jam per hari · kapasitas maksimal ${SLOT_CAPACITY_MAX} per tanggal`}
           icon={<CalendarDays className="size-4" aria-hidden="true" />}
           action={
-            <button
-              type="button"
-              onClick={() => setDialog({ entity: "slot", row: null })}
-              className={addButtonClass}
-            >
-              <Plus className="size-4" aria-hidden="true" />
-              Tambah slot
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+                Senin–Minggu
+              </span>
+              <button
+                type="button"
+                onClick={() => setDialog({ entity: "slotTemplate", row: null })}
+                className={addButtonClass}
+              >
+                <Plus className="size-4" aria-hidden="true" />
+                Tambah jam
+              </button>
+            </div>
           }
         >
           <div className="divide-y divide-border xl:hidden">
-            {data.slot.length === 0 ? (
-              <EmptyState>Belum ada slot. Tambahkan slot pertama.</EmptyState>
+            {data.slotTemplate.length === 0 ? (
+              <EmptyState>Belum ada template jam latihan.</EmptyState>
             ) : (
-              data.slot.map((row) => (
+              data.slotTemplate.map((row) => (
                 <div key={row.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium">
-                        {formatTanggal(row.tanggal)}
+                      <p className="font-display text-base font-bold">
+                        {formatJam(row.jam_mulai)}–{formatJam(row.jam_selesai)}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {formatJam(row.jam_mulai)}–{formatJam(row.jam_selesai)} ·{" "}
-                        <span className="capitalize">{row.sesi}</span>
+                        Kapasitas {row.kapasitas} booking per tanggal
                       </p>
                     </div>
                     <RowActions
-                      editLabel={`Edit slot ${row.tanggal} ${formatJam(row.jam_mulai)}`}
-                      onEdit={() => setDialog({ entity: "slot", row })}
+                      editLabel={`Edit jam ${formatJam(row.jam_mulai)}`}
+                      onEdit={() =>
+                        setDialog({ entity: "slotTemplate", row })
+                      }
                     >
                       <DeleteMasterDataButton
                         id={row.id}
-                        entityLabel={`slot ${row.tanggal} ${formatJam(row.jam_mulai)}`}
-                        description={`Slot ${formatTanggal(row.tanggal)} pukul ${formatJam(row.jam_mulai)} akan dihapus permanen. Slot yang sudah memiliki booking tidak dapat dihapus.`}
-                        action={deleteSlotAction}
+                        entityLabel={`jam ${formatJam(row.jam_mulai)}–${formatJam(row.jam_selesai)}`}
+                        description={`Jam ${formatJam(row.jam_mulai)}–${formatJam(row.jam_selesai)} akan dihapus permanen. Jam yang sudah dipakai booking tidak dapat dihapus.`}
+                        action={deleteSlotTemplateAction}
                       />
                     </RowActions>
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {row.kendaraan_nama ?? "Tanpa kendaraan"} ·{" "}
-                    {row.instruktur_nama ?? "Tanpa instruktur"}
-                  </p>
                   <div className="mt-3">
-                    <StatusBadge status={row.status} />
+                    <ActiveBadge active={row.status_aktif} />
                   </div>
                 </div>
               ))
@@ -525,57 +536,44 @@ export function MasterDataManager({ data }: { data: MasterData }) {
             <table className="w-full text-sm">
               <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Tanggal</th>
                   <th className="px-5 py-3 font-medium">Jam</th>
-                  <th className="px-5 py-3 font-medium">Sesi</th>
-                  <th className="px-5 py-3 font-medium">Kendaraan</th>
-                  <th className="px-5 py-3 font-medium">Instruktur</th>
+                  <th className="px-5 py-3 font-medium">Kapasitas</th>
                   <th className="px-5 py-3 font-medium">Status</th>
                   <th className="px-5 py-3 text-right font-medium">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {data.slot.length === 0 ? (
+                {data.slotTemplate.length === 0 ? (
                   <tr>
-                    <td colSpan={7}>
-                      <EmptyState>
-                        Belum ada slot. Tambahkan slot pertama.
-                      </EmptyState>
+                    <td colSpan={4}>
+                      <EmptyState>Belum ada template jam latihan.</EmptyState>
                     </td>
                   </tr>
                 ) : (
-                  data.slot.map((row) => (
+                  data.slotTemplate.map((row) => (
                     <tr key={row.id}>
-                      <td className="px-5 py-3 text-muted-foreground">
-                        {formatTanggal(row.tanggal)}
-                      </td>
                       <td className="px-5 py-3 font-medium">
                         {formatJam(row.jam_mulai)}–{formatJam(row.jam_selesai)}
                       </td>
-                      <td className="px-5 py-3 capitalize text-muted-foreground">
-                        {row.sesi}
-                      </td>
                       <td className="px-5 py-3 text-muted-foreground">
-                        {row.kendaraan_nama ?? "-"}
-                        {row.kendaraan_plat ? ` (${row.kendaraan_plat})` : ""}
-                      </td>
-                      <td className="px-5 py-3 text-muted-foreground">
-                        {row.instruktur_nama ?? "-"}
+                        {row.kapasitas} booking / tanggal
                       </td>
                       <td className="px-5 py-3">
-                        <StatusBadge status={row.status} />
+                        <ActiveBadge active={row.status_aktif} />
                       </td>
                       <td className="px-5 py-3">
                         <div className="flex justify-end">
                           <RowActions
-                            editLabel={`Edit slot ${row.tanggal} ${formatJam(row.jam_mulai)}`}
-                            onEdit={() => setDialog({ entity: "slot", row })}
+                            editLabel={`Edit jam ${formatJam(row.jam_mulai)}`}
+                            onEdit={() =>
+                              setDialog({ entity: "slotTemplate", row })
+                            }
                           >
                             <DeleteMasterDataButton
                               id={row.id}
-                              entityLabel={`slot ${row.tanggal} ${formatJam(row.jam_mulai)}`}
-                              description={`Slot ${formatTanggal(row.tanggal)} pukul ${formatJam(row.jam_mulai)} akan dihapus permanen. Slot yang sudah memiliki booking tidak dapat dihapus.`}
-                              action={deleteSlotAction}
+                              entityLabel={`jam ${formatJam(row.jam_mulai)}–${formatJam(row.jam_selesai)}`}
+                              description={`Jam ${formatJam(row.jam_mulai)}–${formatJam(row.jam_selesai)} akan dihapus permanen. Jam yang sudah dipakai booking tidak dapat dihapus.`}
+                              action={deleteSlotTemplateAction}
                             />
                           </RowActions>
                         </div>
@@ -621,12 +619,10 @@ export function MasterDataManager({ data }: { data: MasterData }) {
                 onSuccess={closeDialog}
               />
             )}
-            {dialog.entity === "slot" && (
-              <SlotForm
+            {dialog.entity === "slotTemplate" && (
+              <SlotTemplateForm
                 key={dialogKey}
-                slot={dialog.row}
-                kendaraan={data.kendaraan}
-                instruktur={data.instruktur}
+                template={dialog.row}
                 onSuccess={closeDialog}
               />
             )}

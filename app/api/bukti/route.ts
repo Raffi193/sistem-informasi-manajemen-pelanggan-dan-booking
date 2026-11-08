@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient, isServiceConfigured } from "@/lib/supabase/admin";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
 
 const BUCKET = "bukti-pembayaran";
 const MAX_BYTES = 4 * 1024 * 1024;
@@ -26,6 +27,22 @@ function extensionFor(type: string) {
  * Validasi identitas memakai kombinasi kode booking + nomor WhatsApp.
  */
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const limited = rateLimit(`bukti:${ip}`, 10, 15 * 60 * 1000);
+
+  if (!limited.ok) {
+    return NextResponse.json(
+      {
+        error:
+          "Terlalu banyak unggahan. Coba lagi beberapa menit atau kirim bukti lewat WhatsApp admin.",
+      },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limited.retryAfter) },
+      },
+    );
+  }
+
   if (!isServiceConfigured) {
     return fail("Unggah bukti belum dikonfigurasi di server.", 503);
   }

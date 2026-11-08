@@ -16,60 +16,22 @@ const supabase = createClient(url, env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
 
-const { data: kendaraan, error: e1 } = await supabase.from("kendaraan").select("id").order("nama");
-const { data: instruktur, error: e2 } = await supabase.from("instruktur").select("id").order("nama");
-if (e1 || e2) {
-  console.error("Gagal ambil master:", e1 ?? e2);
-  process.exit(1);
-}
-if (!kendaraan?.length || !instruktur?.length) {
-  console.error("Master kendaraan/instruktur kosong.");
-  process.exit(1);
-}
-
-const windows = [
-  ["08:00", "10:00", "reguler"],
-  ["08:00", "10:00", "reguler"],
-  ["10:00", "12:00", "reguler"],
-  ["10:00", "12:00", "reguler"],
-  ["12:00", "14:00", "reguler"],
-  ["14:00", "16:00", "reguler"],
-  ["14:00", "16:00", "reguler"],
-  ["16:00", "18:00", "reguler"],
-  ["18:00", "20:00", "malam"],
+const templates = [
+  { urutan: 1, jam_mulai: "08:00", jam_selesai: "10:00", kapasitas: 4 },
+  { urutan: 2, jam_mulai: "10:00", jam_selesai: "12:00", kapasitas: 4 },
+  { urutan: 3, jam_mulai: "12:00", jam_selesai: "14:00", kapasitas: 4 },
+  { urutan: 4, jam_mulai: "14:00", jam_selesai: "16:00", kapasitas: 4 },
+  { urutan: 5, jam_mulai: "16:00", jam_selesai: "18:00", kapasitas: 4 },
 ];
 
-const pad = (n) => String(n).padStart(2, "0");
-const now = new Date();
-const slots = [];
-let rn = 0;
+const { error } = await supabase.from("slot_template").upsert(templates, {
+  onConflict: "jam_mulai,jam_selesai",
+  ignoreDuplicates: true,
+});
 
-for (let d = 0; d < 7; d++) {
-  const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
-  const tanggal = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
-  for (const [mulai, selesai, sesi] of windows) {
-    slots.push({
-      tanggal,
-      jam_mulai: mulai,
-      jam_selesai: selesai,
-      sesi,
-      kendaraan_id: kendaraan[rn % kendaraan.length].id,
-      instruktur_id: instruktur[rn % instruktur.length].id,
-      status: "tersedia",
-    });
-    rn++;
-  }
-}
-
-const { data: exist } = await supabase.from("slot").select("id").limit(1);
-if (exist && exist.length > 0) {
-  console.log("Slot sudah ada — tidak menambah (hindari duplikat).");
-  process.exit(0);
-}
-
-const { error } = await supabase.from("slot").insert(slots);
 if (error) {
-  console.error("Gagal insert slot:", error);
+  console.error("Gagal menyiapkan template jadwal:", error);
   process.exit(1);
 }
-console.log(`Berhasil menyisipkan ${slots.length} slot untuk 7 hari ke depan.`);
+
+console.log("Template 5 jam latihan siap dipakai.");

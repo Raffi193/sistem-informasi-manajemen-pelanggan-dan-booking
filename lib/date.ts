@@ -43,6 +43,43 @@ export function isValidDateInput(value: string | null | undefined): value is str
   );
 }
 
+/**
+ * Hitung umur dari tanggal lahir (YYYY-MM-DD) berdasarkan tanggal hari ini
+ * di Asia/Jakarta. Mengembalikan `null` jika tanggal tidak valid atau di masa depan.
+ */
+export function calculateAge(
+  tanggalLahir: string | null | undefined,
+  today = todayInJakarta(),
+): number | null {
+  if (!isValidDateInput(tanggalLahir) || !isValidDateInput(today)) {
+    return null;
+  }
+
+  const [birthYear, birthMonth, birthDay] = tanggalLahir.split("-").map(Number);
+  const [todayYear, todayMonth, todayDay] = today.split("-").map(Number);
+
+  if (
+    birthYear > todayYear ||
+    (birthYear === todayYear && birthMonth > todayMonth) ||
+    (birthYear === todayYear &&
+      birthMonth === todayMonth &&
+      birthDay > todayDay)
+  ) {
+    return null;
+  }
+
+  let age = todayYear - birthYear;
+
+  if (
+    todayMonth < birthMonth ||
+    (todayMonth === birthMonth && todayDay < birthDay)
+  ) {
+    age -= 1;
+  }
+
+  return age >= 0 ? age : null;
+}
+
 export function addDays(value: string, days: number): string {
   const [year, month, day] = value.split("-").map(Number);
   const date = new Date(Date.UTC(year, month - 1, day));
