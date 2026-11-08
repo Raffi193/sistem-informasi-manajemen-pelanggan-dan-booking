@@ -43,6 +43,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Sembunyikan indikator dev Next.js (logo N) saat demo.
   devIndicators: false,
+  // Jangan buat AGENTS.md otomatis saat menjalankan dev server.
+  agentRules: false,
   async headers() {
     return [
       {
