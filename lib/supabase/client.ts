@@ -1,5 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { supabaseAnonKey, supabaseUrl } from "./config";
+import { getAuthCookieOptions } from "./cookie-options";
 
 /**
  * Supabase client untuk browser (Client Components).
@@ -7,11 +8,6 @@ import { supabaseAnonKey, supabaseUrl } from "./config";
  */
 export function createClient() {
   return createBrowserClient(supabaseUrl, supabaseAnonKey, {
-    cookieOptions: {
-      path: "/",
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7,
-    },
+    cookieOptions: getAuthCookieOptions(),
   });
 }

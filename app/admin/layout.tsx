@@ -33,7 +33,20 @@ export default async function AdminLayout({
 
   // Pertahanan berlapis: proxy sudah menjaga, tetapi tetap diverifikasi di sini.
   if (!claims) redirect("/login");
-  if (!isAdminClaims(claims)) redirect("/login?error=not-admin");
+
+  let isAdmin = isAdminClaims(claims);
+  if (!isAdmin) {
+    // JWT lama bisa belum memuat app_metadata.role yang baru di-set.
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    isAdmin = isAdminClaims({
+      email: user?.email,
+      app_metadata: user?.app_metadata,
+    });
+  }
+
+  if (!isAdmin) redirect("/login?error=not-admin");
 
   const email = typeof claims.email === "string" ? claims.email : "Admin";
 

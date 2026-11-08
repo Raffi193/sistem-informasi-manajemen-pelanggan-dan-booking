@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdminClaims } from "./lib/auth";
 import { supabaseAnonKey, supabaseUrl } from "./lib/supabase/config";
+import { getAuthCookieOptions } from "./lib/supabase/cookie-options";
 
 /**
  * Proxy (pengganti `middleware` di Next.js 16).
@@ -11,12 +12,7 @@ export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookieOptions: {
-      path: "/",
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7,
-    },
+    cookieOptions: getAuthCookieOptions(),
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -37,7 +33,19 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
   const signedIn = Boolean(claims);
-  const isAdmin = isAdminClaims(claims);
+  let isAdmin = isAdminClaims(claims);
+
+  // JWT lama bisa belum memuat app_metadata.role yang baru di-set.
+  // Verifikasi ulang ke Auth agar admin tidak terjebak logout-loop.
+  if (signedIn && !isAdmin) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    isAdmin = isAdminClaims({
+      email: user?.email,
+      app_metadata: user?.app_metadata,
+    });
+  }
 
   const { pathname } = request.nextUrl;
 

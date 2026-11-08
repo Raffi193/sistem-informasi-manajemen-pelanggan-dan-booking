@@ -9,31 +9,22 @@ import {
 } from "@/lib/supabase/admin";
 import type { ActionState } from "@/lib/action-state";
 import { isValidWa, normalizeWa } from "@/lib/crm";
+import {
+  FOTO_TYPES,
+  INSTRUKTUR_BUCKET,
+  MAX_INSTRUKTUR_MEDIA_BYTES,
+  SERTIFIKAT_TYPES,
+  isValidInstructorMediaPath,
+  mediaExtension,
+  storagePathFromPublicUrl,
+  type InstructorMediaKind,
+} from "@/lib/instructor-media";
 import { isTransmisi, SLOT_CAPACITY_MAX } from "@/lib/master-data";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/;
-
-const INSTRUKTUR_BUCKET = "instruktur";
-const MAX_INSTRUKTUR_MEDIA_BYTES = 4 * 1024 * 1024;
-// Vercel membatasi body request serverless sekitar 4,5 MB. Batasi total
-// foto + sertifikat agar multipart tidak melewati batas platform.
-const MAX_INSTRUKTUR_TOTAL_BYTES = 4 * 1024 * 1024;
-const FOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const SERTIFIKAT_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "application/pdf",
-]);
-const MEDIA_EXTENSIONS: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "application/pdf": "pdf",
-};
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -79,20 +70,6 @@ function readChecked(formData: FormData, key: string) {
   return formData.get(key) === "on";
 }
 
-function mediaExtension(type: string) {
-  return MEDIA_EXTENSIONS[type] ?? "bin";
-}
-
-function storagePathFromPublicUrl(url: string | null) {
-  if (!url) return null;
-
-  const marker = `/storage/v1/object/public/${INSTRUKTUR_BUCKET}/`;
-  const index = url.indexOf(marker);
-  if (index < 0) return null;
-
-  return decodeURIComponent(url.slice(index + marker.length));
-}
-
 async function uploadInstructorMedia(
   admin: AdminClient,
   file: File,
@@ -125,6 +102,30 @@ async function removeInstructorMedia(
   if (error) {
     console.error("Hapus media instruktur gagal:", error.message);
   }
+}
+
+function readUploadedInstructorMedia(
+  kind: InstructorMediaKind,
+  formData: FormData,
+  fieldErrors: Record<string, string>,
+) {
+  const url = field(formData, `${kind}_url`);
+  const path = field(formData, `${kind}_path`);
+
+  if (!url && !path) return null;
+
+  const label = kind === "foto" ? "foto" : "sertifikat";
+  if (
+    !url ||
+    !path ||
+    !isValidInstructorMediaPath(kind, path) ||
+    storagePathFromPublicUrl(url) !== path
+  ) {
+    fieldErrors[kind] = `Upload ${label} tidak valid. Coba unggah ulang.`;
+    return null;
+  }
+
+  return { url, path };
 }
 
 function readStatusAktif(formData: FormData) {
@@ -320,6 +321,17 @@ export async function saveInstrukturAction(
     fieldErrors.no_wa = "Gunakan nomor WhatsApp yang valid, mis. 081234567890.";
   }
 
+  const uploadedFoto = readUploadedInstructorMedia(
+    "foto",
+    formData,
+    fieldErrors,
+  );
+  const uploadedSertifikat = readUploadedInstructorMedia(
+    "sertifikat",
+    formData,
+    fieldErrors,
+  );
+
   if (foto) {
     if (foto.size > MAX_INSTRUKTUR_MEDIA_BYTES) {
       fieldErrors.foto = "Ukuran foto maksimal 4 MB.";
@@ -337,14 +349,6 @@ export async function saveInstrukturAction(
     }
   }
 
-  const totalMediaBytes = (foto?.size ?? 0) + (sertifikat?.size ?? 0);
-  if (totalMediaBytes > MAX_INSTRUKTUR_TOTAL_BYTES) {
-    const message =
-      "Total ukuran foto dan sertifikat maksimal 4 MB. Unggah satu file terlebih dahulu, lalu edit lagi untuk file kedua.";
-    if (foto) fieldErrors.foto = message;
-    if (sertifikat) fieldErrors.sertifikat = message;
-  }
-
   if (Object.keys(fieldErrors).length > 0) {
     return {
       status: "error",
@@ -354,7 +358,12 @@ export async function saveInstrukturAction(
   }
 
   const needsStorage = Boolean(
-    foto || sertifikat || hapusFoto || hapusSertifikat,
+    foto ||
+      sertifikat ||
+      uploadedFoto ||
+      uploadedSertifikat ||
+      hapusFoto ||
+      hapusSertifikat,
   );
 
   if (needsStorage && !isServiceConfigured) {
@@ -396,6 +405,8 @@ export async function saveInstrukturAction(
       const uploaded = await uploadInstructorMedia(storage, foto, "foto");
       uploadedPaths.push(uploaded.path);
       fotoUrl = uploaded.url;
+    } else if (uploadedFoto) {
+      fotoUrl = uploadedFoto.url;
     } else if (hapusFoto) {
       fotoUrl = null;
     }
@@ -409,6 +420,8 @@ export async function saveInstrukturAction(
       );
       uploadedPaths.push(uploaded.path);
       sertifikatUrl = uploaded.url;
+    } else if (uploadedSertifikat) {
+      sertifikatUrl = uploadedSertifikat.url;
     } else if (hapusSertifikat) {
       sertifikatUrl = null;
     }
@@ -442,8 +455,10 @@ export async function saveInstrukturAction(
 
   if (storage) {
     await removeInstructorMedia(storage, [
-      foto || hapusFoto ? storagePathFromPublicUrl(oldFotoUrl) : null,
-      sertifikat || hapusSertifikat
+      foto || uploadedFoto || hapusFoto
+        ? storagePathFromPublicUrl(oldFotoUrl)
+        : null,
+      sertifikat || uploadedSertifikat || hapusSertifikat
         ? storagePathFromPublicUrl(oldSertifikatUrl)
         : null,
     ]);

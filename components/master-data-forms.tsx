@@ -7,6 +7,7 @@ import {
   savePaketAction,
   saveSlotTemplateAction,
 } from "@/app/admin/master/actions";
+import { InstructorMediaInput } from "@/components/instructor-media-input";
 import { Spinner } from "@/components/spinner";
 import {
   DialogClose,
@@ -436,36 +437,11 @@ export function InstrukturForm({
   );
   const errors = state.fieldErrors ?? {};
   const isEdit = Boolean(instruktur);
-  const [fileError, setFileError] = useState<string | null>(null);
-
-  function validateTotalFileSize(event: React.FormEvent<HTMLFormElement>) {
-    const form = event.currentTarget;
-    const fotoInput = form.elements.namedItem("foto") as HTMLInputElement | null;
-    const sertifikatInput = form.elements.namedItem(
-      "sertifikat",
-    ) as HTMLInputElement | null;
-    const total =
-      (fotoInput?.files?.[0]?.size ?? 0) +
-      (sertifikatInput?.files?.[0]?.size ?? 0);
-
-    if (total > 4 * 1024 * 1024) {
-      event.preventDefault();
-      setFileError(
-        "Total ukuran foto dan sertifikat maksimal 4 MB. Unggah satu file terlebih dahulu, lalu edit lagi untuk file kedua.",
-      );
-      return;
-    }
-
-    setFileError(null);
-  }
+  const [fotoUploading, setFotoUploading] = useState(false);
+  const [sertifikatUploading, setSertifikatUploading] = useState(false);
 
   return (
-    <form
-      action={formAction}
-      onSubmit={validateTotalFileSize}
-      className="space-y-4"
-      noValidate
-    >
+    <form action={formAction} className="space-y-4" noValidate>
       <DialogHeader>
         <DialogTitle>
           {isEdit ? "Edit instruktur" : "Tambah instruktur"}
@@ -478,7 +454,6 @@ export function InstrukturForm({
       {state.status === "error" && state.message && (
         <FormError message={state.message} />
       )}
-      {fileError && <FormError message={fileError} />}
 
       {instruktur && <input type="hidden" name="id" value={instruktur.id} />}
 
@@ -519,7 +494,7 @@ export function InstrukturForm({
         label="Foto instruktur (opsional)"
         htmlFor="instruktur-foto"
         error={errors.foto}
-        hint="JPG, PNG, atau WEBP. Total foto + sertifikat maksimal 4 MB. Kosongkan jika tidak mengganti."
+        hint="JPG, PNG, atau WEBP. Maksimal 4 MB. Kosongkan jika tidak mengganti."
       >
         {instruktur?.foto_url && (
           <CurrentMedia
@@ -528,16 +503,12 @@ export function InstrukturForm({
             removeName="hapus_foto"
           />
         )}
-        <input
+        <InstructorMediaInput
           id="instruktur-foto"
-          name="foto"
-          type="file"
+          kind="foto"
           accept="image/jpeg,image/png,image/webp"
-          aria-invalid={errors.foto ? true : undefined}
-          aria-describedby={
-            errors.foto ? "instruktur-foto-error" : undefined
-          }
-          className="mt-2 block w-full cursor-pointer rounded-xl border border-input bg-white px-3.5 py-2.5 text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-primary hover:file:bg-primary/15"
+          error={errors.foto}
+          onUploadingChange={setFotoUploading}
         />
       </Field>
 
@@ -545,7 +516,7 @@ export function InstrukturForm({
         label="Sertifikat (opsional)"
         htmlFor="instruktur-sertifikat"
         error={errors.sertifikat}
-        hint="JPG, PNG, WEBP, atau PDF. Total foto + sertifikat maksimal 4 MB. Kosongkan jika tidak mengganti."
+        hint="JPG, PNG, WEBP, atau PDF. Maksimal 4 MB. Kosongkan jika tidak mengganti."
       >
         {instruktur?.sertifikat_url && (
           <CurrentMedia
@@ -554,16 +525,12 @@ export function InstrukturForm({
             removeName="hapus_sertifikat"
           />
         )}
-        <input
+        <InstructorMediaInput
           id="instruktur-sertifikat"
-          name="sertifikat"
-          type="file"
+          kind="sertifikat"
           accept="image/jpeg,image/png,image/webp,application/pdf"
-          aria-invalid={errors.sertifikat ? true : undefined}
-          aria-describedby={
-            errors.sertifikat ? "instruktur-sertifikat-error" : undefined
-          }
-          className="mt-2 block w-full cursor-pointer rounded-xl border border-input bg-white px-3.5 py-2.5 text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-primary hover:file:bg-primary/15"
+          error={errors.sertifikat}
+          onUploadingChange={setSertifikatUploading}
         />
       </Field>
 
@@ -573,7 +540,7 @@ export function InstrukturForm({
       />
 
       <FormActions
-        pending={pending}
+        pending={pending || fotoUploading || sertifikatUploading}
         submitLabel={isEdit ? "Simpan perubahan" : "Tambah instruktur"}
       />
     </form>
