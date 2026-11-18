@@ -109,9 +109,20 @@ Set di Vercel Project Settings > Environment Variables:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production, Preview |
 | `SUPABASE_SERVICE_ROLE_KEY` | Production, Preview (server only) |
 | `NEXT_PUBLIC_WA_ADMIN` | Production, Preview |
+| `NEXT_PUBLIC_SITE_URL` | Production (`https://lpkcvfathan.vercel.app`) |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | Production (opsional) |
 | `ADMIN_EMAILS` | Production (opsional, fallback) |
 
 Jangan pernah menaruh `SUPABASE_SERVICE_ROLE_KEY` di variabel `NEXT_PUBLIC_*`.
+
+### SEO setelah production aktif
+
+1. Pastikan `NEXT_PUBLIC_SITE_URL` berisi `https://lpkcvfathan.vercel.app` tanpa trailing slash.
+2. Buka `/robots.txt` dan `/sitemap.xml`, pastikan URL memakai domain production.
+3. Verifikasi domain di Google Search Console, lalu isi `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` dan redeploy.
+4. Submit `https://lpkcvfathan.vercel.app/sitemap.xml` di Search Console.
+5. Uji hasil kaya dengan [Rich Results Test](https://search.google.com/test/rich-results) untuk homepage dan `/booking`.
+6. Preview deployment otomatis `noindex` lewat header `X-Robots-Tag`; jangan promote preview jika masih ada masalah SEO.
 
 ## 7. Deploy
 

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Masuk Admin — LPK CV. Fathan",
+export const metadata: Metadata = createPageMetadata({
+  title: "Masuk Admin",
   description: "Halaman masuk khusus admin LPK CV. Fathan.",
-  robots: { index: false, follow: false },
-};
+  path: "/login",
+  noIndex: true,
+});
 
 export default function LoginLayout({
   children,

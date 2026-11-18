@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { signOutAction } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Panel Admin — LPK CV. Fathan",
+  title: "Panel Admin",
   robots: { index: false, follow: false },
 };
 

@@ -2,33 +2,7 @@
 
 import { useState } from "react";
 import { Reveal } from "@/components/reveal";
-
-const faqs = [
-  {
-    q: "Apakah harus membuat akun untuk booking?",
-    a: "Tidak. Anda cukup memilih paket dan jadwal, lalu mengisi biodata satu kali — tanpa perlu mendaftar akun.",
-  },
-  {
-    q: "Berapa DP untuk mengunci jadwal?",
-    a: "DP berkisar Rp100.000–200.000 untuk mengunci jadwal Anda. Pelunasan dilakukan saat proses belajar sesuai kesepakatan.",
-  },
-  {
-    q: "Bagaimana cara membayar?",
-    a: "Pembayaran dilakukan via QRIS atau transfer ke rekening resmi yang tertera setelah booking, lalu unggah bukti pembayaran di website. Admin akan memverifikasi dan mengonfirmasi booking Anda.",
-  },
-  {
-    q: "Bagaimana cara cek status booking?",
-    a: "Buka menu “Cek Status”, lalu masukkan kode booking dan nomor WhatsApp yang Anda gunakan saat mendaftar.",
-  },
-  {
-    q: "Bagaimana jika saya tidak bisa hadir?",
-    a: "Segera beri tahu admin. Jika Anda konfirmasi lebih dulu, Anda mendapat kompensasi 1 jam untuk sesi berikutnya. Tanpa konfirmasi, sesi dianggap hangus.",
-  },
-  {
-    q: "Apakah ada kelas malam?",
-    a: "Ada, pukul 18.00–20.00, dengan tambahan biaya Rp20.000. Tersedia juga antar-jemput siswa sesuai paket.",
-  },
-];
+import { faqs } from "@/lib/content/faq";
 
 export function FaqAccordion() {
   const [open, setOpen] = useState<number | null>(0);
@@ -37,12 +11,14 @@ export function FaqAccordion() {
     <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-white">
       {faqs.map((faq, i) => {
         const isOpen = open === i;
+        const answerId = `faq-answer-${i}`;
         return (
-          <Reveal key={i} delay={i * 55}>
+          <Reveal key={faq.q} delay={i * 55}>
             <button
               type="button"
               onClick={() => setOpen(isOpen ? null : i)}
               aria-expanded={isOpen}
+              aria-controls={answerId}
               className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left transition-colors hover:bg-secondary/50"
             >
               <span className="font-medium text-foreground">{faq.q}</span>
@@ -55,11 +31,13 @@ export function FaqAccordion() {
                 +
               </span>
             </button>
-            {isOpen && (
-              <p className="animate-fade-in px-6 pb-5 text-sm leading-relaxed text-muted-foreground">
-                {faq.a}
-              </p>
-            )}
+            <p
+              id={answerId}
+              hidden={!isOpen}
+              className="animate-fade-in px-6 pb-5 text-sm leading-relaxed text-muted-foreground"
+            >
+              {faq.a}
+            </p>
           </Reveal>
         );
       })}

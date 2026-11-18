@@ -368,9 +368,28 @@ export default function BookingPage() {
     <>
       <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6 sm:py-12">
+        <nav
+          aria-label="Breadcrumb"
+          className="animate-fade-up mb-4 text-sm text-muted-foreground"
+        >
+          <ol className="flex flex-wrap items-center justify-center gap-2">
+            <li>
+              <Link
+                href="/"
+                className="transition-colors hover:text-foreground"
+              >
+                Beranda
+              </Link>
+            </li>
+            <li aria-hidden>/</li>
+            <li aria-current="page" className="text-foreground">
+              Booking Kursus
+            </li>
+          </ol>
+        </nav>
         <div className="animate-fade-up text-center">
           <h1 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
-            Booking jadwal kursus
+            Booking jadwal kursus mengemudi di Palembang
           </h1>
           <p className="mt-2 text-muted-foreground">
             Isi tiga langkah singkat di bawah ini.

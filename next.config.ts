@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
+const isVercelPreview = process.env.VERCEL_ENV === "preview";
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -34,6 +35,9 @@ const securityHeaders = [
     value: "camera=(), microphone=(), geolocation=()",
   },
   { key: "X-DNS-Prefetch-Control", value: "off" },
+  ...(isVercelPreview
+    ? [{ key: "X-Robots-Tag", value: "noindex, nofollow" }]
+    : []),
 ];
 
 const nextConfig: NextConfig = {

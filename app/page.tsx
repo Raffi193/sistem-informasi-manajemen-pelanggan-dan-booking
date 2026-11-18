@@ -5,11 +5,26 @@ import { FaqAccordion } from "@/components/faq-accordion";
 import { InstructorCarousel } from "@/components/instructor-carousel";
 import { Parallax } from "@/components/parallax";
 import { Reveal } from "@/components/reveal";
+import { JsonLd } from "@/components/seo/json-ld";
 import { SiteHeader } from "@/components/site-header";
 import { TextReveal } from "@/components/text-reveal";
+import { faqs } from "@/lib/content/faq";
 import { getInstrukturAktif } from "@/lib/data/instruktur";
 import { getPaketAktif } from "@/lib/data/paket";
 import { formatRupiah } from "@/lib/format";
+import {
+  SITE_ADDRESS,
+  SITE_MAPS_URL,
+  SITE_PHONE_DISPLAY,
+  SITE_WHATSAPP_URL,
+} from "@/lib/seo/site";
+import {
+  courseSchema,
+  faqPageSchema,
+  organizationSchema,
+  webPageSchema,
+  websiteSchema,
+} from "@/lib/seo/schema";
 
 const steps = [
   {
@@ -56,6 +71,15 @@ export default async function Home() {
 
   return (
     <>
+      <JsonLd
+        data={[
+          organizationSchema(paketList),
+          courseSchema(paketList),
+          websiteSchema(),
+          webPageSchema(),
+          faqPageSchema(faqs),
+        ]}
+      />
       <SiteHeader />
 
       <main className="flex-1">
@@ -67,8 +91,8 @@ export default async function Home() {
             className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(37,99,235,0.14),transparent_60%)]"
           />
           <div className="mx-auto max-w-4xl px-6 pb-14 pt-20 text-center md:pt-34">
-            <h1 className="font-display text-4xl font-medium leading-[1.14] tracking-tight text-foreground sm:text-5xl md:text-7xl">
-              <TextReveal text="Belajar mengemudi jadi" />
+            <h1 className="font-display text-3xl font-medium leading-[1.14] tracking-tight text-foreground sm:text-5xl md:text-7xl">
+              <TextReveal text="Kursus mengemudi di Palembang jadi" />
               <span className="block text-primary">
                 <TextReveal text="lebih mudah" delay={220} />
               </span>
@@ -112,6 +136,7 @@ export default async function Home() {
                   width={1800}
                   height={600}
                   priority
+                  sizes="(max-width: 1152px) 100vw, 1152px"
                   className="h-64 w-full scale-[1.04] object-cover md:h-80 lg:h-100"
                 />
               </Parallax>
@@ -136,6 +161,64 @@ export default async function Home() {
                 </Reveal>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Tentang — konten informatif untuk pengguna dan mesin pencari */}
+        <section id="tentang" className="px-4 pb-20">
+          <div className="mx-auto max-w-3xl">
+            <Reveal>
+              <h2 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
+                Kursus Mengemudi Manual &amp; Matic di Palembang
+              </h2>
+              <div className="mt-6 space-y-4 text-[15px] leading-relaxed text-muted-foreground">
+                <p>
+                  LPK CV. Fathan membantu Anda belajar mengemudi mobil manual
+                  maupun matic di Palembang, mulai dari pemula yang belum pernah
+                  memegang setir hingga pengemudi yang ingin lebih percaya diri
+                  di jalan raya.
+                </p>
+                <p>
+                  Pilih paket sesuai kebutuhan, tentukan jadwal yang tersedia,
+                  lalu lakukan booking langsung dari website. Instruktur
+                  bersertifikat mendampingi setiap sesi latihan di area
+                  Palembang dan sekitarnya dengan pendekatan yang sabar dan
+                  praktis.
+                </p>
+              </div>
+              <ul className="mt-6 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
+                <li className="flex gap-2">
+                  <span className="text-primary" aria-hidden>
+                    •
+                  </span>
+                  Instruktur bersertifikat dan berpengalaman
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary" aria-hidden>
+                    •
+                  </span>
+                  Mobil manual dan matic
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary" aria-hidden>
+                    •
+                  </span>
+                  Jadwal fleksibel, termasuk kelas malam
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary" aria-hidden>
+                    •
+                  </span>
+                  Antar-jemput sesuai paket
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary" aria-hidden>
+                    •
+                  </span>
+                  Booking online dan cek status kapan saja
+                </li>
+              </ul>
+            </Reveal>
           </div>
         </section>
 
@@ -192,7 +275,7 @@ export default async function Home() {
                     untuk info paket terbaru.
                   </p>
                   <a
-                    href="https://wa.me/6282182944995"
+                    href={SITE_WHATSAPP_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-6 inline-block rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
@@ -296,15 +379,22 @@ export default async function Home() {
                     Lokasi kami
                   </h2>
                   <p className="mt-6 text-[15px] leading-relaxed text-muted-foreground">
-                    Jl. Gub H. Bastari, 8 Ulu, Kecamatan Seberang Ulu I,
-                    Kota Palembang
+                    {SITE_ADDRESS.streetAddress}, Kota{" "}
+                    {SITE_ADDRESS.addressLocality} {SITE_ADDRESS.postalCode}
                   </p>
                   <p className="mt-2 text-[15px] text-muted-foreground">
                     WhatsApp:{" "}
-                    <span className="font-medium text-foreground">082182944995</span>
+                    <a
+                      href={SITE_WHATSAPP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-foreground transition-colors hover:text-primary"
+                    >
+                      {SITE_PHONE_DISPLAY}
+                    </a>
                   </p>
                   <a
-                    href="https://maps.app.goo.gl/sGxegFiEczvHDA4w8"
+                    href={SITE_MAPS_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-6 inline-block rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
@@ -385,7 +475,8 @@ export default async function Home() {
             </nav>
           </div>
           <p className="mt-8 text-sm text-muted-foreground">
-            Jl. Gub H. Bastari, 8 Ulu, Seberang Ulu I, Palembang · WhatsApp: 082182944995
+            {SITE_ADDRESS.streetAddress}, {SITE_ADDRESS.addressLocality}{" "}
+            {SITE_ADDRESS.postalCode} · WhatsApp: {SITE_PHONE_DISPLAY}
           </p>
         </div>
       </footer>

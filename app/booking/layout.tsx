@@ -1,15 +1,29 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/seo/json-ld";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 
-export const metadata: Metadata = {
-  title: "Booking Jadwal Kursus — LPK CV. Fathan",
+export const metadata: Metadata = createPageMetadata({
+  title: "Booking Kursus Mengemudi Palembang",
   description:
-    "Pilih paket dan jadwal kursus mengemudi, isi biodata, lalu booking langsung dari website.",
-};
+    "Pilih paket kursus mengemudi manual atau matic di Palembang, tentukan jadwal, isi biodata, dan booking online bersama LPK CV. Fathan.",
+  path: "/booking",
+});
 
 export default function BookingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Beranda", path: "/" },
+          { name: "Booking Kursus", path: "/booking" },
+        ])}
+      />
+      {children}
+    </>
+  );
 }
