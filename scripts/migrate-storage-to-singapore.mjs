@@ -1,3 +1,4 @@
+import "./load-migration-env.mjs";
 import { createClient } from "@supabase/supabase-js";
 
 const OLD_URL = process.env.OLD_SUPABASE_URL;

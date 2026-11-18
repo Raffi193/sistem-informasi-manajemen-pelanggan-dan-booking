@@ -33,7 +33,26 @@ Buka SQL Editor project baru, lalu jalankan berurutan:
 
 ## 3. Set environment variable untuk script
 
-PowerShell:
+### Opsi A — file lokal (disarankan)
+
+Salin:
+
+```powershell
+Copy-Item .env.migration.example .env.migration.local
+```
+
+Lalu isi `.env.migration.local`:
+
+```env
+OLD_SUPABASE_URL=https://PROJECT-LAMA.supabase.co
+NEW_SUPABASE_URL=https://PROJECT-BARU.supabase.co
+OLD_SERVICE_ROLE_KEY=service-role-key-lama
+NEW_SERVICE_ROLE_KEY=service-role-key-baru
+```
+
+File `.env.migration.local` sudah masuk `.gitignore`.
+
+### Opsi B — PowerShell
 
 ```powershell
 $env:OLD_SUPABASE_URL="https://PROJECT-LAMA.supabase.co"
