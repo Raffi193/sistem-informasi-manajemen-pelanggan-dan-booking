@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { FileText } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin-page-header";
 import {
   AgeDistributionChart,
@@ -121,9 +122,10 @@ export default async function AnalyticsPage({
         action={
           <Link
             href="/admin/laporan"
-            className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
           >
-            Lihat laporan →
+            <FileText className="size-4" aria-hidden="true" />
+            Lihat laporan
           </Link>
         }
       />

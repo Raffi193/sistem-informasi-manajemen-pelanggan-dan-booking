@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { Save, X } from "lucide-react";
 import { Spinner } from "@/components/spinner";
 import { initialActionState } from "@/lib/action-state";
 import { CUSTOMER_STATUSES } from "@/lib/crm";
@@ -164,7 +165,11 @@ export function CustomerForm({
           disabled={pending}
           className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending && <Spinner className="size-4" />}
+          {pending ? (
+            <Spinner className="size-4" />
+          ) : (
+            <Save className="size-4" aria-hidden="true" />
+          )}
           {pending
             ? "Menyimpan…"
             : isEdit
@@ -173,8 +178,9 @@ export function CustomerForm({
         </button>
         <a
           href={cancelHref}
-          className="rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+          className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
         >
+          <X className="size-4" aria-hidden="true" />
           Batal
         </a>
       </div>

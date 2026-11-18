@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { FileText, Plus, RotateCcw, Search } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin-page-header";
 import {
   CustomerList,
@@ -145,15 +146,17 @@ export default async function CustomerPage({
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/admin/customer/new"
-              className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
+              <Plus className="size-4" aria-hidden="true" />
               Tambah customer
             </Link>
             <Link
               href="/admin/laporan"
-              className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             >
-              Lihat laporan →
+              <FileText className="size-4" aria-hidden="true" />
+              Lihat laporan
             </Link>
           </div>
         }
@@ -238,15 +241,17 @@ export default async function CustomerPage({
           <div className="flex min-w-0 items-end gap-2 md:col-span-2 xl:col-span-12 xl:justify-end">
             <button
               type="submit"
-              className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
+              <Search className="size-4" aria-hidden="true" />
               Terapkan
             </button>
             {activeFilters && (
               <Link
                 href="/admin/customer"
-                className="rounded-full border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
               >
+                <RotateCcw className="size-4" aria-hidden="true" />
                 Reset
               </Link>
             )}

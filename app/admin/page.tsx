@@ -1,5 +1,18 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import {
+  ArrowRight,
+  BarChart3,
+  CalendarCheck,
+  Car,
+  CheckCircle2,
+  Clock3,
+  Database,
+  FileText,
+  GraduationCap,
+  Package,
+  Users,
+} from "lucide-react";
 import { AdminPageHeader } from "@/components/admin-page-header";
 import {
   BOOKING_STATUSES,
@@ -71,28 +84,47 @@ export default async function AdminDashboardPage() {
     value: number;
     accent: boolean;
     href?: string;
+    icon: typeof CalendarCheck;
   }[] = [
-    { label: "Total Booking Tercatat", value: totalBooking, accent: false },
+    {
+      label: "Total Booking Tercatat",
+      value: totalBooking,
+      accent: false,
+      icon: CalendarCheck,
+    },
     {
       label: "Booking Menunggu Verifikasi",
       value: statusCounts.menunggu_verifikasi,
       accent: true,
       href: "/admin/booking?status=menunggu_verifikasi",
+      icon: Clock3,
     },
-    { label: "Booking Disetujui", value: statusCounts.disetujui, accent: false },
+    {
+      label: "Booking Disetujui",
+      value: statusCounts.disetujui,
+      accent: false,
+      icon: CheckCircle2,
+    },
     {
       label: "Daftar Customer",
       value: customerRes.count ?? 0,
       accent: false,
       href: "/admin/customer",
+      icon: Users,
     },
     {
       label: "Jadwal Kursus Aktif",
       value: slotTemplateRes.count ?? 0,
       accent: false,
       href: "/admin/master",
+      icon: CalendarCheck,
     },
-    { label: "Paket Aktif", value: paketRes.count ?? 0, accent: false },
+    {
+      label: "Paket Aktif",
+      value: paketRes.count ?? 0,
+      accent: false,
+      icon: Package,
+    },
   ];
 
   return (
@@ -104,15 +136,17 @@ export default async function AdminDashboardPage() {
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/admin/analitik"
-              className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
-              Lihat analitik →
+              <BarChart3 className="size-4" aria-hidden="true" />
+              Lihat analitik
             </Link>
             <Link
               href="/admin/laporan"
-              className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             >
-              Lihat laporan →
+              <FileText className="size-4" aria-hidden="true" />
+              Lihat laporan
             </Link>
           </div>
         }
@@ -128,7 +162,16 @@ export default async function AdminDashboardPage() {
           );
           const content = (
             <>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
+                <stat.icon
+                  className={cn(
+                    "size-5 shrink-0",
+                    stat.accent ? "text-primary" : "text-muted-foreground/60",
+                  )}
+                  aria-hidden="true"
+                />
+              </div>
               <p
                 className={cn(
                   "mt-2 font-display text-3xl font-bold",
@@ -138,8 +181,9 @@ export default async function AdminDashboardPage() {
                 {stat.value}
               </p>
               {stat.href && (
-                <p className="mt-2 text-xs font-medium text-primary">
-                  Lihat daftar →
+                <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                  Lihat daftar
+                  <ArrowRight className="size-3" aria-hidden="true" />
                 </p>
               )}
             </>
@@ -159,13 +203,19 @@ export default async function AdminDashboardPage() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <div className="rounded-2xl border border-border bg-white p-4 sm:p-5">
-          <p className="text-sm text-muted-foreground">Jumlah Kendaraan</p>
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Car className="size-4" aria-hidden="true" />
+            Jumlah Kendaraan
+          </p>
           <p className="mt-1 font-display text-2xl font-bold">
             {kendaraanRes.count ?? 0}
           </p>
         </div>
         <div className="rounded-2xl border border-border bg-white p-4 sm:p-5">
-          <p className="text-sm text-muted-foreground">Jumlah Instruktur</p>
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <GraduationCap className="size-4" aria-hidden="true" />
+            Jumlah Instruktur
+          </p>
           <p className="mt-1 font-display text-2xl font-bold">
             {instrukturRes.count ?? 0}
           </p>
@@ -174,18 +224,23 @@ export default async function AdminDashboardPage() {
 
       <div className="overflow-hidden rounded-2xl border border-border bg-white">
         <div className="flex flex-col gap-2 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-          <h2 className="font-display font-bold">Booking terbaru</h2>
+          <h2 className="flex items-center gap-2 font-display font-bold">
+            <CalendarCheck className="size-4 text-primary" aria-hidden="true" />
+            Booking terbaru
+          </h2>
           <div className="flex items-center gap-4">
             <Link
               href="/admin/booking"
-              className="text-sm font-medium text-primary hover:underline"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
             >
-              Lihat semua →
+              Lihat semua
+              <ArrowRight className="size-3.5" aria-hidden="true" />
             </Link>
             <Link
               href="/admin/master"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground hover:underline"
+              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground hover:underline"
             >
+              <Database className="size-3.5" aria-hidden="true" />
               Master data
             </Link>
           </div>

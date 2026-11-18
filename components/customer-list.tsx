@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { Eye, MessageCircle } from "lucide-react";
 
 import { CustomerStatusBadge } from "@/components/customer-status-badge";
 import { DeleteCustomerButton } from "@/components/delete-customer-button";
@@ -201,8 +202,9 @@ export function CustomerList({
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/admin/customer/${customer.id}`}
-                        className="font-medium text-primary hover:underline"
+                        className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline"
                       >
+                        <Eye className="size-4" aria-hidden="true" />
                         Detail
                       </Link>
                       <DeleteCustomerButton
@@ -266,8 +268,9 @@ export function CustomerList({
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Link
                       href={`/admin/customer/${customer.id}`}
-                      className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
                     >
+                      <Eye className="size-4" aria-hidden="true" />
                       Detail
                     </Link>
                     <a
@@ -277,8 +280,9 @@ export function CustomerList({
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground"
                     >
+                      <MessageCircle className="size-4" aria-hidden="true" />
                       Chat WA
                     </a>
                     <DeleteCustomerButton

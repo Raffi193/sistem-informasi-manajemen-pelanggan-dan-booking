@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import {
+  CheckCheck,
+  CheckCircle2,
+  RotateCcw,
+  Search,
+  XCircle,
+} from "lucide-react";
 import { AdminPageHeader } from "@/components/admin-page-header";
 import { ConfirmSubmit } from "@/components/confirm-submit";
 import { StatusBadge, type StatusValue } from "@/components/status-badge";
@@ -146,15 +153,17 @@ export default async function AdminBookingPage({
         />
         <button
           type="submit"
-          className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
+          <Search className="size-4" aria-hidden="true" />
           Cari
         </button>
         {(status || q) && (
           <Link
             href="/admin/booking"
-            className="rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+            className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
           >
+            <RotateCcw className="size-4" aria-hidden="true" />
             Reset
           </Link>
         )}
@@ -356,8 +365,9 @@ export default async function AdminBookingPage({
                         <input type="hidden" name="decision" value="approve" />
                         <button
                           type="submit"
-                          className="rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
                         >
+                          <CheckCircle2 className="size-4" aria-hidden="true" />
                           Setujui
                         </button>
                       </form>
@@ -372,8 +382,9 @@ export default async function AdminBookingPage({
                           title="Tolak booking ini?"
                           message={`Booking ${booking.kode_booking} akan ditolak, kuota jadwal dibebaskan, dan pembayaran ditandai ditolak. Tindakan ini tidak dapat dibatalkan.`}
                           confirmLabel="Ya, tolak booking"
-                          className="rounded-full border border-destructive/40 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
                         >
+                          <XCircle className="size-4" aria-hidden="true" />
                           Tolak
                         </ConfirmSubmit>
                       </form>
@@ -390,8 +401,9 @@ export default async function AdminBookingPage({
                         />
                         <button
                           type="submit"
-                          className="w-full rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary md:w-auto"
+                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary md:w-auto"
                         >
+                          <CheckCheck className="size-4" aria-hidden="true" />
                           Tandai selesai
                         </button>
                       </form>

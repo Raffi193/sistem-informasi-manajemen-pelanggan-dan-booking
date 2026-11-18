@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState, type ReactNode } from "react";
+import { Save, X } from "lucide-react";
 import {
   saveInstrukturAction,
   saveKendaraanAction,
@@ -135,6 +136,7 @@ function FormActions({
         disabled={pending}
         className={secondaryButtonClass}
       >
+        <X className="size-4" aria-hidden="true" />
         Batal
       </DialogClose>
       <button
@@ -143,7 +145,11 @@ function FormActions({
         className={primaryButtonClass}
         aria-busy={pending}
       >
-        {pending && <Spinner className="size-4" />}
+        {pending ? (
+          <Spinner className="size-4" />
+        ) : (
+          <Save className="size-4" aria-hidden="true" />
+        )}
         {pending ? "Menyimpan…" : submitLabel}
       </button>
     </DialogFooter>

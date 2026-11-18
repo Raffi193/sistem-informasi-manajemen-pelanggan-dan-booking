@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
+import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { AdminNav } from "@/components/admin-nav";
 import { AdminSessionGuard } from "@/components/admin-session-guard";
 import { BrandLogo } from "@/components/brand-logo";
 import { PageTransition } from "@/components/page-transition";
 import { isAdminClaims } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { signOutAction } from "./actions";
 
 export const metadata: Metadata = {
   title: "Panel Admin",
@@ -63,11 +63,7 @@ export default async function AdminLayout({
                 <span className="font-display font-bold">Panel Admin</span>
               </BrandLogo>
             </Link>
-            <form action={signOutAction}>
-              <button className="rounded-full border border-border px-4 py-1.5 text-sm font-medium">
-                Keluar
-              </button>
-            </form>
+            <AdminLogoutButton variant="mobile" />
           </div>
           <AdminNav />
         </header>
@@ -100,11 +96,9 @@ export default async function AdminLayout({
               >
                 {email}
               </p>
-              <form action={signOutAction} className="mt-2">
-                <button className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-secondary">
-                  Keluar
-                </button>
-              </form>
+              <div className="mt-2">
+                <AdminLogoutButton variant="desktop" />
+              </div>
             </div>
           </div>
         </aside>

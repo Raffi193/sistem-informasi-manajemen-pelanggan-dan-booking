@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { Search, Users } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin-page-header";
 import { CustomerStatusBadge } from "@/components/customer-status-badge";
 import { FollowUpTypeBadge } from "@/components/follow-up-type-badge";
@@ -136,9 +137,10 @@ export default async function LaporanPage({
         action={
           <Link
             href="/admin/customer"
-            className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
           >
-            Customer &amp; follow-up →
+            <Users className="size-4" aria-hidden="true" />
+            Customer &amp; follow-up
           </Link>
         }
       />
@@ -173,8 +175,9 @@ export default async function LaporanPage({
           </label>
           <button
             type="submit"
-            className="w-full rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
           >
+            <Search className="size-4" aria-hidden="true" />
             Terapkan
           </button>
         </form>

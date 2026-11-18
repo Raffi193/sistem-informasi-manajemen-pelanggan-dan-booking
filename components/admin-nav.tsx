@@ -2,16 +2,25 @@
 
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  BarChart3,
+  CalendarCheck,
+  Database,
+  ExternalLink,
+  FileText,
+  LayoutDashboard,
+  Users,
+} from "lucide-react";
 import { Spinner } from "@/components/spinner";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/analitik", label: "Dashboard Analitik" },
-  { href: "/admin/booking", label: "Booking & Verifikasi" },
-  { href: "/admin/customer", label: "Customer & Follow-up" },
-  { href: "/admin/laporan", label: "Laporan" },
-  { href: "/admin/master", label: "Master Data" },
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/analitik", label: "Dashboard Analitik", icon: BarChart3 },
+  { href: "/admin/booking", label: "Booking & Verifikasi", icon: CalendarCheck },
+  { href: "/admin/customer", label: "Customer & Follow-up", icon: Users },
+  { href: "/admin/laporan", label: "Laporan", icon: FileText },
+  { href: "/admin/master", label: "Master Data", icon: Database },
 ];
 
 function PendingIndicator() {
@@ -56,6 +65,7 @@ export function AdminNav() {
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground",
             )}
           >
+            <item.icon className="size-4 shrink-0" aria-hidden="true" />
             <span className="truncate">{item.label}</span>
             <PendingIndicator />
           </Link>
@@ -63,9 +73,10 @@ export function AdminNav() {
       })}
       <Link
         href="/"
-        className="block rounded-xl px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground md:mt-1 md:text-sm"
+        className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground md:mt-1 md:text-sm"
       >
-        Lihat Situs →
+        <ExternalLink className="size-4 shrink-0" aria-hidden="true" />
+        Lihat Situs
       </Link>
     </nav>
   );

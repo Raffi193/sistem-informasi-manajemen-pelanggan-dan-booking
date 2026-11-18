@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
+import { ArrowLeft, MessageCircle } from "lucide-react";
 import { CustomerForm } from "@/components/customer-form";
 import { CustomerStatusBadge } from "@/components/customer-status-badge";
 import { DeleteCustomerButton } from "@/components/delete-customer-button";
@@ -102,9 +103,10 @@ export default async function CustomerDetailPage({
       <div>
         <Link
           href="/admin/customer"
-          className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
-          ← Kembali ke daftar customer
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          Kembali ke daftar customer
         </Link>
       </div>
 
@@ -149,8 +151,9 @@ export default async function CustomerDetailPage({
             )}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-700"
+            className="inline-flex items-center gap-2 rounded-full bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-700"
           >
+            <MessageCircle className="size-4" aria-hidden="true" />
             Chat WhatsApp
           </a>
           <DeleteCustomerButton
