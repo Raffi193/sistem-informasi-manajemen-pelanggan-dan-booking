@@ -21,21 +21,23 @@ const newClient = createClient(NEW_URL, NEW_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-// Urutan insert mengikuti foreign key. Delete memakai urutan terbalik.
-const TABLES = [
-  "paket",
-  "kendaraan",
-  "instruktur",
+const MASTER_TABLES = ["paket", "kendaraan", "instruktur", "slot_template"];
+const TRANSACTION_TABLES = [
   "slot",
-  "slot_template",
   "customer",
   "booking",
   "pembayaran",
   "follow_up",
 ];
+const DELETE_ORDER = [
+  "follow_up",
+  "pembayaran",
+  "booking",
+  "customer",
+  "slot",
+];
+const INSERT_ORDER = ["slot", "customer", "booking", "pembayaran", "follow_up"];
 
-// Kolom final setelah migrasi 0011. Kolom lama seperti sisa_jam sengaja
-// tidak dibawa karena sudah dihapus dari schema baru.
 const COLUMNS = {
   paket: [
     "id",
@@ -56,6 +58,15 @@ const COLUMNS = {
     "foto_url",
     "sertifikat_url",
   ],
+  slot_template: [
+    "id",
+    "urutan",
+    "jam_mulai",
+    "jam_selesai",
+    "kapasitas",
+    "status_aktif",
+    "created_at",
+  ],
   slot: [
     "id",
     "tanggal",
@@ -65,15 +76,6 @@ const COLUMNS = {
     "kendaraan_id",
     "instruktur_id",
     "status",
-  ],
-  slot_template: [
-    "id",
-    "urutan",
-    "jam_mulai",
-    "jam_selesai",
-    "kapasitas",
-    "status_aktif",
-    "created_at",
   ],
   customer: [
     "id",
@@ -114,12 +116,32 @@ const PAGE_SIZE = 1000;
 const INSERT_BATCH_SIZE = 500;
 const ZERO_UUID = "00000000-0000-0000-0000-000000000000";
 
-async function fetchAll(table) {
+function pick(row, table) {
+  const clean = {};
+  for (const column of COLUMNS[table] ?? []) {
+    if (row[column] !== undefined) clean[column] = row[column];
+  }
+  return clean;
+}
+
+function normalizeName(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function normalizeTime(value) {
+  return typeof value === "string" ? value.slice(0, 5) : "";
+}
+
+function templateKey(row) {
+  return `${normalizeTime(row.jam_mulai)}-${normalizeTime(row.jam_selesai)}`;
+}
+
+async function fetchAll(client, table) {
   const rows = [];
   let from = 0;
 
   while (true) {
-    const { data, error } = await oldClient
+    const { data, error } = await client
       .from(table)
       .select("*")
       .order("id", { ascending: true })
@@ -137,43 +159,6 @@ async function fetchAll(table) {
   }
 
   return rows;
-}
-
-function normalizeTime(value) {
-  return typeof value === "string" ? value.slice(0, 5) : "";
-}
-
-function sanitizeRows(table, rows, slotTemplateById) {
-  return rows.map((row) => {
-    const clean = {};
-
-    for (const column of COLUMNS[table] ?? []) {
-      if (row[column] !== undefined) {
-        clean[column] = row[column];
-      }
-    }
-
-    if (table === "booking") {
-      // Status no_show sudah dihapus dari schema baru.
-      if (clean.status === "no_show") clean.status = "batal";
-
-      // Kedua kolom jadwal harus null atau terisi bersama.
-      if (!clean.slot_template_id || !clean.tanggal_latihan) {
-        clean.slot_template_id = null;
-        clean.tanggal_latihan = null;
-      }
-
-      if (clean.biaya_tambahan === undefined || clean.biaya_tambahan === null) {
-        const template = clean.slot_template_id
-          ? slotTemplateById.get(clean.slot_template_id)
-          : null;
-        clean.biaya_tambahan =
-          template && normalizeTime(template.jam_mulai) >= "18:00" ? 20000 : 0;
-      }
-    }
-
-    return clean;
-  });
 }
 
 async function clearTable(table) {
@@ -212,42 +197,191 @@ async function countRows(table) {
   return count ?? 0;
 }
 
+function buildMap(oldRows, newRows, oldKey, newKey, label, required = true) {
+  const newByKey = new Map();
+
+  for (const row of newRows) {
+    const key = newKey(row);
+    if (!newByKey.has(key)) newByKey.set(key, row.id);
+  }
+
+  const map = new Map();
+  const missing = [];
+
+  for (const row of oldRows) {
+    const key = oldKey(row);
+    const newId = newByKey.get(key);
+
+    if (newId) {
+      map.set(row.id, newId);
+    } else {
+      missing.push(key);
+    }
+  }
+
+  if (required && missing.length > 0) {
+    throw new Error(
+      `Mapping ${label} gagal. Tidak ditemukan di project baru: ${missing.join(", ")}`,
+    );
+  }
+
+  console.log(
+    `Mapping ${label}: ${map.size}/${oldRows.length}${missing.length ? `, dilewati: ${missing.length}` : ""}`,
+  );
+
+  return map;
+}
+
+function mapSlot(row, maps) {
+  const clean = pick(row, "slot");
+
+  if (clean.kendaraan_id) {
+    clean.kendaraan_id = maps.kendaraan.get(clean.kendaraan_id) ?? null;
+  }
+  if (clean.instruktur_id) {
+    clean.instruktur_id = maps.instruktur.get(clean.instruktur_id) ?? null;
+  }
+
+  return clean;
+}
+
+function mapBooking(row, maps, oldTemplatesById) {
+  const clean = pick(row, "booking");
+
+  if (clean.paket_id) {
+    const mapped = maps.paket.get(clean.paket_id);
+    if (!mapped) {
+      throw new Error(`Paket ${clean.paket_id} tidak ditemukan di project baru.`);
+    }
+    clean.paket_id = mapped;
+  }
+
+  if (clean.slot_template_id) {
+    const mapped = maps.slotTemplate.get(clean.slot_template_id);
+    if (!mapped) {
+      throw new Error(
+        `Slot template ${clean.slot_template_id} tidak ditemukan di project baru.`,
+      );
+    }
+    clean.slot_template_id = mapped;
+  }
+
+  if (!clean.slot_template_id || !clean.tanggal_latihan) {
+    clean.slot_template_id = null;
+    clean.tanggal_latihan = null;
+  }
+
+  if (clean.status === "no_show") clean.status = "batal";
+
+  if (clean.biaya_tambahan === undefined || clean.biaya_tambahan === null) {
+    const oldTemplate = row.slot_template_id
+      ? oldTemplatesById.get(row.slot_template_id)
+      : null;
+    clean.biaya_tambahan =
+      oldTemplate && normalizeTime(oldTemplate.jam_mulai) >= "18:00"
+        ? 20000
+        : 0;
+  }
+
+  return clean;
+}
+
 async function main() {
   console.log("Membaca data dari project lama...");
-  const dump = {};
+  const old = {};
 
-  for (const table of TABLES) {
-    const rows = await fetchAll(table);
-    const slotTemplateById = new Map(
-      (dump.slot_template ?? []).map((row) => [row.id, row]),
+  for (const table of [...MASTER_TABLES, ...TRANSACTION_TABLES]) {
+    old[table] = await fetchAll(oldClient, table);
+    console.log(`${table}: ${old[table].length} baris`);
+  }
+
+  console.log("\nMembaca master data project baru...");
+  const fresh = {};
+
+  for (const table of MASTER_TABLES) {
+    fresh[table] = await fetchAll(newClient, table);
+    console.log(`${table}: ${fresh[table].length} baris`);
+  }
+
+  if (fresh.paket.length === 0 || fresh.slot_template.length === 0) {
+    throw new Error(
+      "Master data project baru masih kosong. Isi paket dan slot_template terlebih dahulu.",
     );
-    dump[table] = sanitizeRows(table, rows, slotTemplateById);
-    console.log(`${table}: ${dump[table].length} baris`);
+  }
+
+  console.log("\nMenyiapkan mapping foreign key...");
+  const maps = {
+    paket: buildMap(
+      old.paket,
+      fresh.paket,
+      (row) => normalizeName(row.nama),
+      (row) => normalizeName(row.nama),
+      "paket",
+    ),
+    kendaraan: buildMap(
+      old.kendaraan,
+      fresh.kendaraan,
+      (row) => normalizeName(row.nama),
+      (row) => normalizeName(row.nama),
+      "kendaraan",
+    ),
+    instruktur: buildMap(
+      old.instruktur,
+      fresh.instruktur,
+      (row) => normalizeName(row.nama),
+      (row) => normalizeName(row.nama),
+      "instruktur",
+      false,
+    ),
+    slotTemplate: buildMap(
+      old.slot_template,
+      fresh.slot_template,
+      templateKey,
+      templateKey,
+      "slot_template",
+    ),
+  };
+
+  const oldTemplatesById = new Map(
+    old.slot_template.map((row) => [row.id, row]),
+  );
+
+  const mapped = {
+    slot: old.slot.map((row) => mapSlot(row, maps)),
+    customer: old.customer.map((row) => pick(row, "customer")),
+    booking: old.booking.map((row) => mapBooking(row, maps, oldTemplatesById)),
+    pembayaran: old.pembayaran.map((row) => pick(row, "pembayaran")),
+    follow_up: old.follow_up.map((row) => pick(row, "follow_up")),
+  };
+
+  console.log("\nData yang akan diimpor:");
+  for (const table of INSERT_ORDER) {
+    console.log(`${table}: ${mapped[table].length} baris`);
   }
 
   if (!CONFIRM) {
-    console.log("\nDRY RUN selesai. Tidak ada data baru yang diubah.");
+    console.log("\nDRY RUN selesai. Master data project baru tidak diubah.");
     console.log(
-      "Set CONFIRM_RESET_NEW=YES untuk mengosongkan tabel baru lalu import.",
+      "Set CONFIRM_RESET_NEW=YES untuk mengosongkan tabel transaksi baru lalu import.",
     );
     return;
   }
 
-  console.log("\nMengosongkan tabel project baru...");
-  for (const table of [...TABLES].reverse()) {
+  console.log("\nMengosongkan tabel transaksi project baru...");
+  for (const table of DELETE_ORDER) {
     await clearTable(table);
     console.log(`  ${table}: dikosongkan`);
   }
 
-  console.log("\nMengimpor data ke project baru...");
-  for (const table of TABLES) {
-    await insertRows(table, dump[table]);
+  console.log("\nMengimpor data transaksi ke project baru...");
+  for (const table of INSERT_ORDER) {
+    await insertRows(table, mapped[table]);
   }
 
-  console.log("\nVerifikasi jumlah baris...");
+  console.log("\nVerifikasi jumlah baris transaksi...");
   let failed = false;
-  for (const table of TABLES) {
-    const expected = dump[table].length;
+  for (const table of INSERT_ORDER) {
+    const expected = mapped[table].length;
     const actual = await countRows(table);
     const ok = actual === expected;
     console.log(`${ok ? "OK" : "MISMATCH"} ${table}: ${actual}/${expected}`);
@@ -258,7 +392,7 @@ async function main() {
     throw new Error("Jumlah baris tidak sama. Periksa data sebelum production.");
   }
 
-  console.log("\nMigrasi data selesai.");
+  console.log("\nMigrasi data selesai. Master data project baru tetap dipertahankan.");
 }
 
 main().catch((error) => {
