@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
+import { ScrollEdgeButton } from "@/components/scroll-edge-button";
 import {
   DEFAULT_ROBOTS,
   SITE_DESCRIPTION,
@@ -84,7 +85,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="id"
       className={`${poppins.variable} antialiased`}
     >
-      <body className="flex min-h-screen flex-col">{children}</body>
+      <body className="flex min-h-screen flex-col">
+      {children}
+      <ScrollEdgeButton />
+    </body>
     </html>
   );
 }

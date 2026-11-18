@@ -2,7 +2,6 @@ import Link from "next/link";
 import { BookingNavCta } from "@/components/booking-nav-cta";
 import { BrandLogo } from "@/components/brand-logo";
 import { MobileMenu } from "@/components/mobile-menu";
-import { ScrollEdgeButton } from "@/components/scroll-edge-button";
 
 const navItems = [
   { href: "/#cara-kerja", label: "Cara Kerja" },
@@ -43,7 +42,6 @@ export function SiteHeader() {
           </div>
         </nav>
       </div>
-      <ScrollEdgeButton />
     </header>
   );
 }
