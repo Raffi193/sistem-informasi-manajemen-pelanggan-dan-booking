@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -285,7 +285,7 @@ export default function BookingPage() {
         <SiteHeader />
         <main className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
           <div className="animate-page-in w-full max-w-2xl text-center">
-            <span className="animate-zoom-in mx-auto flex size-14 items-center justify-center rounded-full bg-green-100 text-2xl text-green-600">
+            <span className="animate-zoom-in mx-auto flex size-14 items-center justify-center rounded-full bg-green-100 text-2xl text-green-600 dark:bg-green-950/40 dark:text-green-400">
               ✓
             </span>
             <h1 className="mt-5 font-display text-3xl font-bold leading-tight">Booking berhasil, lakukan pembayaran DP sekarang!</h1>
@@ -317,7 +317,7 @@ export default function BookingPage() {
             </div>
 
             <div
-              className="animate-fade-up mt-8 rounded-2xl border border-border bg-white p-5 text-left sm:p-6"
+              className="animate-fade-up mt-8 rounded-2xl border border-border bg-card p-5 text-left sm:p-6"
               style={{ animationDelay: "180ms" }}
             >
               <PaymentInstructions kodeBooking={result.kode_booking} />
@@ -521,7 +521,7 @@ export default function BookingPage() {
                   setJadwalList([]);
                   setLoadingSlot(Boolean(value));
                 }}
-                className="mt-2 w-full rounded-xl border border-input bg-white px-4 py-3 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                className="mt-2 w-full rounded-xl border border-input bg-card px-4 py-3 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
               />
             </label>
 
@@ -556,7 +556,7 @@ export default function BookingPage() {
                         selected
                           ? "border-primary bg-primary text-white"
                           : item.tersedia
-                            ? "border-border bg-white hover:border-primary/50"
+                            ? "border-border bg-card hover:border-primary/50"
                             : "cursor-not-allowed border-border bg-muted text-muted-foreground"
                       }`}
                       style={{ animationDelay: `${index * 45}ms` }}
@@ -578,15 +578,15 @@ export default function BookingPage() {
                 })}
               </div>
             )}            
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-red-700">
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/30">
+              <div className="flex items-center gap-2 text-sm font-semibold text-red-700 dark:text-red-300">
                 <Info className="h-4 w-4" />
                 Informasi Jadwal
               </div>
 
-              <ul className="mt-3 space-y-2.5 text-sm leading-relaxed text-gray-700">
+              <ul className="mt-3 space-y-2.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
                 <li className="flex gap-2.5">
-                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" />
                   <span>
                     Jadwal ini adalah jadwal booking awal. Jadwal pertemuan berikutnya dapat
                     diatur dengan admin.
@@ -594,17 +594,17 @@ export default function BookingPage() {
                 </li>
 
                 <li className="flex gap-2.5">
-                  <Moon className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                  <Moon className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" />
                   <span>
                     Jadwal jam malam dan hari Minggu terdapat biaya tambahan{" "}
-                    <span className="rounded-md bg-red-100 px-1.5 py-0.5 font-semibold text-red-700">
+                    <span className="rounded-md bg-red-100 px-1.5 py-0.5 font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300">
                       Rp20.000
                     </span>
                   </span>
                 </li>
 
                 <li className="flex gap-2.5">
-                  <CalendarOff className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                  <CalendarOff className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" />
                   <span>Hari Sabtu libur, tidak ada jadwal latihan.</span>
                 </li>
               </ul>
@@ -627,7 +627,7 @@ export default function BookingPage() {
                   value={nama}
                   onChange={(e) => setNama(e.target.value)}
                   placeholder="Contoh: Budi Santoso"
-                  className={`mt-2 w-full rounded-xl border bg-white px-4 py-3 outline-none focus:ring-2 ${
+                  className={`mt-2 w-full rounded-xl border bg-card px-4 py-3 outline-none focus:ring-2 ${
                     errors.nama
                       ? "border-destructive focus:border-destructive focus:ring-destructive/30"
                       : "border-input focus:border-primary focus:ring-primary/30"
@@ -655,7 +655,7 @@ export default function BookingPage() {
                   aria-describedby={
                     errors.tanggalLahir ? "tanggal-lahir-error" : undefined
                   }
-                  className={`mt-2 w-full rounded-xl border bg-white px-4 py-3 outline-none focus:ring-2 ${
+                  className={`mt-2 w-full rounded-xl border bg-card px-4 py-3 outline-none focus:ring-2 ${
                     errors.tanggalLahir
                       ? "border-destructive focus:border-destructive focus:ring-destructive/30"
                       : "border-input focus:border-primary focus:ring-primary/30"
@@ -685,7 +685,7 @@ export default function BookingPage() {
                   value={noWa}
                   onChange={(e) => setNoWa(e.target.value)}
                   placeholder="081234567890"
-                  className={`mt-2 w-full rounded-xl border bg-white px-4 py-3 outline-none focus:ring-2 ${
+                  className={`mt-2 w-full rounded-xl border bg-card px-4 py-3 outline-none focus:ring-2 ${
                     errors.noWa
                       ? "border-destructive focus:border-destructive focus:ring-destructive/30"
                       : "border-input focus:border-primary focus:ring-primary/30"
@@ -716,7 +716,7 @@ export default function BookingPage() {
                   placeholder="Alamat tempat tinggal / penjemputan"
                   aria-invalid={errors.alamat ? true : undefined}
                   aria-describedby={errors.alamat ? "alamat-error" : undefined}
-                  className={`mt-2 w-full rounded-xl border bg-white px-4 py-3 outline-none focus:ring-2 ${
+                  className={`mt-2 w-full rounded-xl border bg-card px-4 py-3 outline-none focus:ring-2 ${
                     errors.alamat
                       ? "border-destructive focus:border-destructive focus:ring-destructive/30"
                       : "border-input focus:border-primary focus:ring-primary/30"

@@ -83,12 +83,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="id"
+      suppressHydrationWarning
       className={`${poppins.variable} antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => { try { const theme = localStorage.getItem("theme"); const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches; const isDark = theme === "dark" || (!theme && prefersDark); document.documentElement.classList.toggle("dark", isDark); } catch {} })();`,
+          }}
+        />
+      </head>
       <body className="flex min-h-screen flex-col">
-      {children}
-      <ScrollEdgeButton />
-    </body>
+        {children}
+        <ScrollEdgeButton />
+      </body>
     </html>
   );
 }

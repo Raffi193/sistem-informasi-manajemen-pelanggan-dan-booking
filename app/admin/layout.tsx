@@ -5,6 +5,7 @@ import { connection } from "next/server";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { AdminNav } from "@/components/admin-nav";
 import { AdminSessionGuard } from "@/components/admin-session-guard";
+import { ForceLightTheme } from "@/components/force-light-theme";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { BrandLogo } from "@/components/brand-logo";
 import { PageTransition } from "@/components/page-transition";
@@ -77,6 +78,7 @@ export default async function AdminLayout({
         </main>
       </div>
       <AdminSessionGuard />
+      <ForceLightTheme />
     </div>
   );
 }

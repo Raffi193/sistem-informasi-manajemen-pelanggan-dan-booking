@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Reveal } from "@/components/reveal";
@@ -8,7 +8,7 @@ export function FaqAccordion() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-white">
+    <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
       {faqs.map((faq, i) => {
         const isOpen = open === i;
         const answerId = `faq-answer-${i}`;

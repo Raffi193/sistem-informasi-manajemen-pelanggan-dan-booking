@@ -146,7 +146,7 @@ export default async function Home() {
               </Link>
               <Link
                 href="#paket"
-                className="group inline-flex items-center gap-2 rounded-full border border-border bg-white px-7 py-3 text-base font-medium text-foreground transition-all duration-300 hover:-translate-y-0.5 hover:bg-secondary hover:shadow-md"
+                className="group inline-flex items-center gap-2 rounded-full border border-border bg-card px-7 py-3 text-base font-medium text-foreground transition-all duration-300 hover:-translate-y-0.5 hover:bg-secondary hover:shadow-md"
               >
                 <Package
                   className="size-4 transition-transform duration-300 group-hover:scale-110"
@@ -186,7 +186,7 @@ export default async function Home() {
                 <Reveal key={item.title} delay={index * 90} className="h-full">
                   <div className="card-lift group h-full rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                     <div className="flex items-center gap-3">
-                      <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/70 text-primary shadow-sm transition-transform duration-300 group-hover:scale-110">
+                      <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-card/70 text-primary shadow-sm transition-transform duration-300 group-hover:scale-110">
                         <item.icon className="size-5" aria-hidden="true" />
                       </span>
                       <h3 className="font-display text-xl font-bold text-foreground">
@@ -280,7 +280,7 @@ export default async function Home() {
             <div className="grid gap-5 md:grid-cols-3">
               {steps.map((step, i) => (
                 <Reveal key={step.title} delay={i * 90} className="h-full">
-                  <div className="card-lift group h-full rounded-2xl border border-border bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                  <div className="card-lift group h-full rounded-2xl border border-border bg-card p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                     <div className="flex items-center justify-between">
                       <span className="font-display text-sm font-bold text-primary">
                         0{i + 1}
@@ -316,7 +316,7 @@ export default async function Home() {
             </Reveal>
             {paketList.length === 0 ? (
               <Reveal>
-                <div className="rounded-2xl border border-dashed border-border bg-white p-10 text-center">
+                <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
                   <p className="font-display text-lg font-bold text-foreground">
                     Paket belum dapat dimuat
                   </p>
@@ -343,7 +343,7 @@ export default async function Home() {
                     delay={index * 80}
                     className="h-full"
                   >
-                    <div className="card-lift flex h-full flex-col rounded-2xl border border-border bg-white p-6">
+                    <div className="card-lift flex h-full flex-col rounded-2xl border border-border bg-card p-6">
                       <p className="text-sm font-medium text-primary">
                         {labelTransmisi(paket.transmisi)}
                       </p>
@@ -402,7 +402,7 @@ export default async function Home() {
           <div className="mx-auto max-w-6xl">
             <div className="grid gap-5 md:grid-cols-2">
               <Reveal variant="left" className="h-full">
-                <div className="card-lift h-full rounded-3xl border border-border bg-white p-8">
+                <div className="card-lift h-full rounded-3xl border border-border bg-card p-8">
                   <div className="flex items-center gap-3">
                     <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                       <Clock3 className="size-5" aria-hidden="true" />
@@ -429,7 +429,7 @@ export default async function Home() {
               </Reveal>
 
               <Reveal variant="right" delay={100} className="h-full">
-                <div className="card-lift h-full rounded-3xl border border-border bg-white p-8">
+                <div className="card-lift h-full rounded-3xl border border-border bg-card p-8">
                   <div className="flex items-center gap-3">
                     <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                       <MapPin className="size-5" aria-hidden="true" />
@@ -508,13 +508,13 @@ export default async function Home() {
                   Siap mulai belajar mengemudi?
                 </h2>
               </div>
-              <p className="mx-auto mt-3 max-w-md text-blue-100">
+              <p className="mx-auto mt-3 max-w-md text-blue-100 dark:text-blue-200">
                 Amankan jadwal kursus Anda hari ini bersama instruktur berpengalaman
                 LPK CV. Fathan.
               </p>
               <Link
                 href="/booking"
-                className="group mt-8 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-base font-medium text-primary transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-lg"
+                className="group mt-8 inline-flex items-center gap-2 rounded-full bg-card px-7 py-3 text-base font-medium text-primary transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-lg"
               >
                 <CalendarCheck
                   className="size-4 transition-transform duration-300 group-hover:scale-110"
@@ -532,12 +532,12 @@ export default async function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-white">
+      <footer className="border-t border-border bg-card">
         <div className="mx-auto max-w-6xl px-6 py-10 pb-24 md:pb-10">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <div>
               <BrandLogo size={40}>
-                <span className="font-display font-bold text-black text-lg">LPK CV. Fathan</span>
+                <span className="font-display font-bold text-foreground text-lg">LPK CV. Fathan</span>
               </BrandLogo>
               <p className="mt-2 max-w-xs text-sm text-muted-foreground">
                 Kursus mengemudi mobil manual &amp; matic di Palembang.
@@ -574,7 +574,7 @@ export default async function Home() {
       </footer>
 
       {/* CTA melayang di mobile — efisiensi & visibilitas aksi utama */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white/95 p-3 backdrop-blur md:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 p-3 backdrop-blur md:hidden">
         <Link
           href="/booking"
           className="block rounded-full bg-primary py-3 text-center text-sm font-medium text-primary-foreground transition-transform active:scale-[0.99]"

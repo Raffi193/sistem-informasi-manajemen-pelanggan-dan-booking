@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -130,7 +130,7 @@ export default function StatusPage() {
               value={kode}
               onChange={(e) => setKode(e.target.value)}
               placeholder="Contoh: A1B2C3D4"
-              className="mt-2 w-full rounded-xl border border-input bg-white px-4 py-3 font-mono uppercase tracking-widest outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+              className="mt-2 w-full rounded-xl border border-input bg-card px-4 py-3 font-mono uppercase tracking-widest outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
             />
           </label>
           <label className="block">
@@ -141,7 +141,7 @@ export default function StatusPage() {
               value={noWa}
               onChange={(e) => setNoWa(e.target.value)}
               placeholder="081234567890"
-              className="mt-2 w-full rounded-xl border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+              className="mt-2 w-full rounded-xl border border-input bg-card px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
             />
           </label>
           {error && (
@@ -161,9 +161,9 @@ export default function StatusPage() {
 
         {/* Hasil */}
         {notFound && (
-          <div className="animate-fade-up mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-5 sm:p-6">
-            <h2 className="font-semibold text-amber-900">Booking tidak ditemukan</h2>
-            <ul className="mt-3 space-y-2 text-sm text-amber-800">
+          <div className="animate-fade-up mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-5 sm:p-6 dark:border-amber-900/60 dark:bg-amber-950/30">
+            <h2 className="font-semibold text-amber-900 dark:text-amber-300">Booking tidak ditemukan</h2>
+            <ul className="mt-3 space-y-2 text-sm text-amber-800 dark:text-amber-300">
               <li>• Pastikan kode booking ditulis lengkap dan benar (8 karakter).</li>
               <li>• Gunakan nomor WhatsApp yang sama seperti saat booking.</li>
               <li>
@@ -175,7 +175,7 @@ export default function StatusPage() {
         )}
 
         {result && (
-          <div className="animate-blur-in mt-8 rounded-2xl border border-border bg-white p-5 sm:p-6">
+          <div className="animate-blur-in mt-8 rounded-2xl border border-border bg-card p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs font-medium text-muted-foreground">Kode booking</p>
