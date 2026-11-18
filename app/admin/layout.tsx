@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { AdminNav } from "@/components/admin-nav";
+import { BrandLogo } from "@/components/brand-logo";
 import { PageTransition } from "@/components/page-transition";
 import { isAdminClaims } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -56,11 +57,10 @@ export default async function AdminLayout({
         {/* Bar atas (mobile) */}
         <header className="rounded-2xl border border-border bg-white px-4 py-3 md:hidden">
           <div className="flex items-center justify-between">
-            <Link href="/admin" className="flex items-center gap-2">
-              <span className="flex size-8 items-center justify-center rounded-full bg-primary font-display text-sm font-bold text-primary-foreground">
-                F
-              </span>
-              <span className="font-display font-bold">Panel Admin</span>
+            <Link href="/admin" className="flex items-center">
+              <BrandLogo size={32}>
+                <span className="font-display font-bold">Panel Admin</span>
+              </BrandLogo>
             </Link>
             <form action={signOutAction}>
               <button className="rounded-full border border-border px-4 py-1.5 text-sm font-medium">
@@ -76,19 +76,18 @@ export default async function AdminLayout({
           <div className="sticky top-6 rounded-2xl border border-border bg-white p-4">
             <Link
               href="/admin"
-              className="flex items-center gap-2.5 px-2 py-1.5"
+              className="flex items-center px-2 py-1.5"
             >
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary font-display text-sm font-bold text-primary-foreground">
-                F
-              </span>
-              <span className="min-w-0">
-                <span className="block font-display text-sm font-bold leading-tight">
-                  Panel Admin
+              <BrandLogo size={32}>
+                <span className="min-w-0">
+                  <span className="block font-display text-sm font-bold leading-tight">
+                    Panel Admin
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    LPK CV. Fathan
+                  </span>
                 </span>
-                <span className="block text-xs text-muted-foreground">
-                  LPK CV. Fathan
-                </span>
-              </span>
+              </BrandLogo>
             </Link>
 
             <AdminNav />

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { FaqAccordion } from "@/components/faq-accordion";
 import { InstructorCarousel } from "@/components/instructor-carousel";
 import { Parallax } from "@/components/parallax";
@@ -361,7 +362,9 @@ export default async function Home() {
         <div className="mx-auto max-w-6xl px-6 py-10 pb-24 md:pb-10">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <div>
-              <span className="font-display font-bold text-amber-500 text-lg">LPK CV. Fathan</span>
+              <BrandLogo size={40}>
+                <span className="font-display font-bold text-black text-lg">LPK CV. Fathan</span>
+              </BrandLogo>
               <p className="mt-2 max-w-xs text-sm text-muted-foreground">
                 Kursus mengemudi mobil manual &amp; matic di Palembang.
               </p>

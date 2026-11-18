@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { BrandLogo } from "@/components/brand-logo";
 import { Spinner } from "@/components/spinner";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/is-configured";
@@ -70,13 +71,12 @@ export default function LoginPage() {
       />
 
       <div className="animate-page-in w-full max-w-sm">
-        <Link href="/" className="mx-auto flex w-fit items-center gap-2.5">
-          <span className="flex size-9 items-center justify-center rounded-full bg-primary font-display text-base font-bold text-primary-foreground">
-            F
-          </span>
-          <span className="font-display text-lg font-bold tracking-tight">
-            Fathan Driving School
-          </span>
+        <Link href="/" className="mx-auto flex w-fit items-center">
+          <BrandLogo size={40} priority>
+            <span className="font-display text-lg font-bold tracking-tight">
+              Fathan Driving School
+            </span>
+          </BrandLogo>
         </Link>
 
         <div
