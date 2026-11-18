@@ -18,9 +18,8 @@ export function SiteHeader() {
         <nav className="flex items-center justify-between gap-3 rounded-full border border-border bg-white/80 py-2 pl-4 pr-2 shadow-sm backdrop-blur-md md:pl-6">
           <Link href="/" className="flex min-w-0 items-center">
             <BrandLogo size={36} priority>
-              <span className="whitespace-nowrap text-base font-semibold tracking-tight sm:text-[20px]">
-                <span className="sm:hidden">Fathan</span>
-                <span className="hidden sm:inline">Fathan Driving School</span>
+              <span className="whitespace-nowrap text-sm font-semibold tracking-tight sm:text-[20px]">
+                Fathan Driving School
               </span>
             </BrandLogo>
           </Link>
