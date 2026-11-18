@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
 import { Spinner } from "@/components/spinner";
 import { createClient } from "@/lib/supabase/client";
@@ -13,8 +12,6 @@ export default function LoginPage() {
     () => (isSupabaseConfigured ? createClient() : null),
     [],
   );
-  const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -59,8 +56,11 @@ export default function LoginPage() {
     }
 
     const next = new URLSearchParams(window.location.search).get("next");
-    router.replace(next && next.startsWith("/admin") ? next : "/admin");
-    router.refresh();
+    const target = next && next.startsWith("/admin") ? next : "/admin";
+
+    // Full navigation setelah login agar cookie sesi sudah terbaca server
+    // dan tidak terjadi race dengan router.refresh().
+    window.location.assign(target);
   }
 
   return (
