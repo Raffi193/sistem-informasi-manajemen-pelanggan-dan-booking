@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { BuktiUpload } from "@/components/bukti-upload";
 import { PaymentInstructions } from "@/components/payment-instructions";
@@ -391,14 +390,9 @@ export default function BookingPage() {
           </ol>
         </nav>
         <div className="animate-fade-up text-center">
-          <div className="flex items-center justify-center gap-3">
-            <span className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <CalendarDays className="size-5" aria-hidden="true" />
-            </span>
-            <h1 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
-              Amankan jadwal kursus mengemudi di Palembang
-            </h1>
-          </div>
+          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
+            Booking Sekarang
+          </h1>
           <p className="mt-3 text-muted-foreground">
             Lengkapi tiga langkah singkat, lalu amankan jadwal kursus Anda.
           </p>
