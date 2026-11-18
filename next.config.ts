@@ -54,6 +54,7 @@ const nextConfig: NextConfig = {
     ];
   },
   experimental: {
+    agentUpgrade: "security",
     serverActions: {
       // Vercel membatasi body request serverless sekitar 4,5 MB.
       // Form instruktur juga membatasi total foto + sertifikat di server action.
