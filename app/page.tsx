@@ -11,6 +11,7 @@ import {
   Clock3,
   CreditCard,
   HelpCircle,
+  Lock,
   MapPin,
   MessageCircle,
   Package,
@@ -542,7 +543,7 @@ export default async function Home() {
                 Kursus mengemudi mobil manual &amp; matic di Palembang.
               </p>
             </div>
-            <nav className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-muted-foreground">
+            <nav className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
               <Link href="/booking" className="transition-colors hover:text-foreground">
                 Booking
               </Link>
@@ -554,6 +555,14 @@ export default async function Home() {
               </Link>
               <Link href="#paket" className="transition-colors hover:text-foreground">
                 Paket
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 transition-colors hover:text-foreground"
+                aria-label="Login admin"
+              >
+                <Lock className="size-4" aria-hidden="true" />
+                Login Admin
               </Link>
             </nav>
           </div>
