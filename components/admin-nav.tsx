@@ -39,7 +39,7 @@ function PendingIndicator() {
   );
 }
 
-export function AdminNav() {
+export function AdminNav({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -58,25 +58,43 @@ export function AdminNav() {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
+            aria-label={collapsed ? item.label : undefined}
+            title={collapsed ? item.label : undefined}
             className={cn(
-              "flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition-colors md:text-sm",
+              "flex items-center rounded-xl text-xs font-medium transition-colors md:text-sm",
+              collapsed
+                ? "justify-center px-2 py-2.5"
+                : "gap-2 px-3 py-2",
               active
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground",
             )}
           >
-            <item.icon className="size-4 shrink-0" aria-hidden="true" />
-            <span className="truncate">{item.label}</span>
-            <PendingIndicator />
+            <item.icon
+              className={collapsed ? "size-5 shrink-0" : "size-4 shrink-0"}
+              aria-hidden="true"
+            />
+            {!collapsed && <span className="truncate">{item.label}</span>}
+            {!collapsed && <PendingIndicator />}
           </Link>
         );
       })}
       <Link
         href="/"
-        className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground md:mt-1 md:text-sm"
+        aria-label={collapsed ? "Lihat Situs" : undefined}
+        title={collapsed ? "Lihat Situs" : undefined}
+        className={cn(
+          "flex items-center rounded-xl text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground md:mt-1 md:text-sm",
+          collapsed
+            ? "justify-center px-2 py-2.5"
+            : "gap-2 px-3 py-2",
+        )}
       >
-        <ExternalLink className="size-4 shrink-0" aria-hidden="true" />
-        Lihat Situs
+        <ExternalLink
+          className={collapsed ? "size-5 shrink-0" : "size-4 shrink-0"}
+          aria-hidden="true"
+        />
+        {!collapsed && "Lihat Situs"}
       </Link>
     </nav>
   );

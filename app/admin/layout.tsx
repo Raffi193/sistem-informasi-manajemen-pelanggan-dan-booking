@@ -5,6 +5,7 @@ import { connection } from "next/server";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { AdminNav } from "@/components/admin-nav";
 import { AdminSessionGuard } from "@/components/admin-session-guard";
+import { AdminSidebar } from "@/components/admin-sidebar";
 import { BrandLogo } from "@/components/brand-logo";
 import { PageTransition } from "@/components/page-transition";
 import { isAdminClaims } from "@/lib/auth";
@@ -69,39 +70,7 @@ export default async function AdminLayout({
         </header>
 
         {/* Sidebar (desktop) */}
-        <aside className="hidden w-60 shrink-0 md:block">
-          <div className="sticky top-6 rounded-2xl border border-border bg-white p-4">
-            <Link
-              href="/admin"
-              className="flex items-center px-2 py-1.5"
-            >
-              <BrandLogo size={32}>
-                <span className="min-w-0">
-                  <span className="block font-display text-sm font-bold leading-tight">
-                    Panel Admin
-                  </span>
-                  <span className="block text-xs text-muted-foreground">
-                    LPK CV. Fathan
-                  </span>
-                </span>
-              </BrandLogo>
-            </Link>
-
-            <AdminNav />
-
-            <div className="mt-5 border-t border-border pt-4">
-              <p
-                className="truncate px-3 text-xs text-muted-foreground"
-                title={email}
-              >
-                {email}
-              </p>
-              <div className="mt-2">
-                <AdminLogoutButton variant="desktop" />
-              </div>
-            </div>
-          </div>
-        </aside>
+        <AdminSidebar email={email} />
 
         <main className="min-w-0 flex-1">
           <PageTransition>{children}</PageTransition>
