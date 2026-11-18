@@ -23,23 +23,23 @@ export const BOOKING_STATUSES = [
 
 const styles: Record<StatusValue, string> = {
   tersedia:
-    "bg-green-100 text-green-700 ring-green-600/20 dark:bg-green-950/40 dark:text-green-300 dark:ring-green-500/30",
+    "bg-green-100 text-green-800 ring-green-700/25 dark:bg-green-950/40 dark:text-green-300 dark:ring-green-500/30",
   penuh:
-    "bg-red-100 text-red-700 ring-red-600/20 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-500/30",
+    "bg-red-100 text-red-800 ring-red-700/25 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-500/30",
   ditutup:
-    "bg-slate-100 text-slate-500 ring-slate-500/20 dark:bg-slate-800/60 dark:text-slate-300 dark:ring-slate-500/30",
+    "bg-slate-100 text-slate-700 ring-slate-600/25 dark:bg-slate-800/60 dark:text-slate-300 dark:ring-slate-500/30",
   menunggu_pembayaran:
-    "bg-amber-100 text-amber-700 ring-amber-600/20 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-500/30",
+    "bg-amber-100 text-amber-800 ring-amber-700/25 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-500/30",
   menunggu_verifikasi:
-    "bg-blue-100 text-blue-700 ring-blue-600/20 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-500/30",
+    "bg-blue-100 text-blue-800 ring-blue-700/25 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-500/30",
   disetujui:
-    "bg-green-100 text-green-700 ring-green-600/20 dark:bg-green-950/40 dark:text-green-300 dark:ring-green-500/30",
+    "bg-green-100 text-green-800 ring-green-700/25 dark:bg-green-950/40 dark:text-green-300 dark:ring-green-500/30",
   ditolak:
-    "bg-red-100 text-red-700 ring-red-600/20 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-500/30",
+    "bg-red-100 text-red-800 ring-red-700/25 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-500/30",
   selesai:
-    "bg-blue-100 text-blue-800 ring-blue-600/20 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-500/30",
+    "bg-blue-100 text-blue-900 ring-blue-700/25 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-500/30",
   batal:
-    "bg-slate-100 text-slate-500 ring-slate-500/20 dark:bg-slate-800/60 dark:text-slate-300 dark:ring-slate-500/30",
+    "bg-slate-100 text-slate-700 ring-slate-600/25 dark:bg-slate-800/60 dark:text-slate-300 dark:ring-slate-500/30",
 };
 
 const labels: Record<StatusValue, string> = {

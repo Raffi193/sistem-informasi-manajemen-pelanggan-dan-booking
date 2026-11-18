@@ -182,7 +182,7 @@ export function PaymentInstructions({
                 className={`mt-1 min-h-4 text-xs ${
                   copyError
                     ? "text-destructive"
-                    : "text-green-700 dark:text-green-400"
+                    : "text-green-800 dark:text-green-400"
                 }`}
               >
                 {copied

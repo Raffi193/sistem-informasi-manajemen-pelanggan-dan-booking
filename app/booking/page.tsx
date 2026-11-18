@@ -565,7 +565,7 @@ export default function BookingPage() {
                       <span
                         className={`block text-xs ${
                           selected
-                            ? "text-blue-100"
+                            ? "text-blue-50 dark:text-blue-100"
                             : "text-muted-foreground"
                         }`}
                       >

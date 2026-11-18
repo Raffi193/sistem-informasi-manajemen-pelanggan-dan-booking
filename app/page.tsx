@@ -16,7 +16,6 @@ import {
   MessageCircle,
   Package,
   SearchCheck,
-  Sparkles,
 } from "lucide-react";
 import { InstructorCarousel } from "@/components/instructor-carousel";
 import { Parallax } from "@/components/parallax";
@@ -503,12 +502,12 @@ export default async function Home() {
               className="overflow-hidden rounded-3xl bg-primary px-8 py-16 text-center"
             >
               <div className="flex items-center justify-center gap-3">
-                <Sparkles className="size-6 text-white/90" aria-hidden="true" />
-                <h2 className="font-display text-3xl font-bold leading-tight text-white md:text-4xl">
+                
+                <h2 className="font-display text-2xl font-bold leading-tight text-white md:text-4xl">
                   Siap mulai belajar mengemudi?
                 </h2>
               </div>
-              <p className="mx-auto mt-3 max-w-md text-blue-100 dark:text-blue-200">
+              <p className="mx-auto mt-3 max-w-md text-blue-50 dark:text-blue-100">
                 Amankan jadwal kursus Anda hari ini bersama instruktur berpengalaman
                 LPK CV. Fathan.
               </p>

@@ -67,7 +67,7 @@
   --secondary: #f4f4f6;
   --secondary-foreground: #0a0a0b;
   --muted: #f4f4f6;
-  --muted-foreground: #6b7280;
+  --muted-foreground: #4b5563;
   --accent: #eff6ff;
   --accent-foreground: #2563eb;
   --destructive: #dc2626;
@@ -134,6 +134,11 @@
   }
   html {
     @apply font-sans;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--muted-foreground);
+    opacity: 1;
   }
 }
 
