@@ -179,7 +179,7 @@ export default async function Home() {
         </section>
 
         {/* Keunggulan */}
-        <section id="keunggulan" className="px-4 pb-20">
+        <section id="keunggulan" className="scroll-mt-28 px-4 pb-20">
           <div className="mx-auto max-w-6xl">
             <div className="grid gap-5 md:grid-cols-3">
               {keunggulan.map((item, index) => (
@@ -204,7 +204,7 @@ export default async function Home() {
         </section>
 
         {/* Tentang — konten informatif untuk pengguna dan mesin pencari */}
-        <section id="tentang" className="px-4 pb-20">
+        <section id="tentang" className="scroll-mt-28 px-4 pb-20">
           <div className="mx-auto max-w-3xl">
             <Reveal>
               <h2 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
@@ -267,7 +267,7 @@ export default async function Home() {
         </section>
 
         {/* Cara kerja */}
-        <section id="cara-kerja" className="px-4 pb-20">
+        <section id="cara-kerja" className="scroll-mt-28 px-4 pb-20">
           <div className="mx-auto max-w-6xl">
             <Reveal className="mb-10 text-center">
               <h2 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
@@ -304,7 +304,7 @@ export default async function Home() {
         </section>
 
         {/* Paket */}
-        <section id="paket" className="px-4 pb-24">
+        <section id="paket" className="scroll-mt-28 px-4 pb-24">
           <div className="mx-auto max-w-6xl">
             <Reveal className="mb-10 text-center">
               <h2 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
@@ -379,7 +379,7 @@ export default async function Home() {
 
         {/* Instruktur */}
         {instrukturList.length > 0 && (
-          <section id="instruktur" className="px-4 pb-24">
+          <section id="instruktur" className="scroll-mt-28 px-4 pb-24">
             <div className="mx-auto max-w-6xl">
               <Reveal className="mb-10 text-center">
                 <h2 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
@@ -398,7 +398,7 @@ export default async function Home() {
         )}
 
         {/* Lokasi & Jam — info dunia nyata yang mudah dipahami */}
-        <section id="lokasi" className="overflow-x-clip px-4 pb-24">
+        <section id="lokasi" className="scroll-mt-28 overflow-x-clip px-4 pb-24">
           <div className="mx-auto max-w-6xl">
             <div className="grid gap-5 md:grid-cols-2">
               <Reveal variant="left" className="h-full">
@@ -476,7 +476,7 @@ export default async function Home() {
         </section>
 
         {/* FAQ — Help & documentation */}
-        <section id="faq" className="px-4 pb-24">
+        <section id="faq" className="scroll-mt-28 px-4 pb-24">
           <div className="mx-auto max-w-3xl">
             <Reveal className="mb-8 text-center">
               <div className="flex items-center justify-center gap-3">
@@ -514,7 +514,7 @@ export default async function Home() {
               </p>
               <Link
                 href="/booking"
-                className="group mt-8 inline-flex items-center gap-2 rounded-full bg-card px-7 py-3 text-base font-medium text-primary transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-lg"
+                className="group mt-8 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-base font-medium text-primary transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-lg"
               >
                 <CalendarCheck
                   className="size-4 transition-transform duration-300 group-hover:scale-110"

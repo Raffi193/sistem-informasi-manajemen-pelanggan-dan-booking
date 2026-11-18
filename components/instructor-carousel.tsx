@@ -90,7 +90,7 @@ export function InstructorCarousel({
             onClick={() => slide(-1)}
             disabled={!canScrollPrev}
             aria-label="Geser instruktur ke kiri"
-            className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-white text-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
           </button>
@@ -99,7 +99,7 @@ export function InstructorCarousel({
             onClick={() => slide(1)}
             disabled={!canScrollNext}
             aria-label="Geser instruktur ke kanan"
-            className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-white text-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronRight className="size-4" aria-hidden="true" />
           </button>

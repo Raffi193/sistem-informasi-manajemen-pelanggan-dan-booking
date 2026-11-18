@@ -19,7 +19,7 @@ export function InstructorCard({
   const certificateIsImage = isImageUrl(instruktur.sertifikat_url);
 
   return (
-    <article className="card-lift flex h-full flex-col overflow-hidden rounded-xl border border-border bg-white">
+    <article className="card-lift flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card">
       <div className="relative h-[270px] shrink-0 bg-gradient-to-br from-primary/15 to-primary/5">
         {instruktur.foto_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -54,7 +54,7 @@ export function InstructorCard({
                 href={instruktur.sertifikat_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block overflow-hidden rounded-lg border border-border bg-white"
+                className="block overflow-hidden rounded-lg border border-border bg-card"
                 aria-label={`Lihat sertifikat ${instruktur.nama}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

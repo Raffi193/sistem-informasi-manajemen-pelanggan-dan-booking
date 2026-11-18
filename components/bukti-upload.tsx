@@ -123,12 +123,12 @@ export function BuktiUpload({
     return (
       <div
         role="status"
-        className="animate-page-in rounded-xl border border-green-300 bg-green-50 p-4 sm:p-5"
+        className="animate-page-in rounded-xl border border-green-300 bg-green-50 p-4 sm:p-5 dark:border-green-900/60 dark:bg-green-950/30"
       >
-        <p className="font-semibold text-green-900">
+        <p className="font-semibold text-green-900 dark:text-green-300">
           Bukti pembayaran berhasil diunggah
         </p>
-        <p className="mt-1 text-sm leading-relaxed text-green-800">
+        <p className="mt-1 text-sm leading-relaxed text-green-800 dark:text-green-200">
           Status booking Anda sekarang <strong>Menunggu verifikasi</strong>.
           Admin akan memeriksa bukti pembayaran. Anda juga bisa mengirim
           konfirmasi lewat WhatsApp.
@@ -144,7 +144,7 @@ export function BuktiUpload({
           </a>
           <Link
             href="/status"
-            className="rounded-full border border-green-300 bg-white px-5 py-2.5 text-sm font-medium text-green-800 transition-colors hover:bg-green-100"
+            className="rounded-full border border-green-300 bg-card px-5 py-2.5 text-sm font-medium text-green-800 transition-colors hover:bg-green-100 dark:border-green-800 dark:bg-green-950/40 dark:text-green-200 dark:hover:bg-green-900/50"
           >
             Cek Status Booking
           </Link>
@@ -173,7 +173,7 @@ export function BuktiUpload({
           placeholder="Contoh: 150000"
           aria-invalid={nominalError ? true : undefined}
           aria-describedby={`${jumlahId}-hint${nominalError ? ` ${jumlahId}-error` : ""}`}
-          className={`mt-1.5 w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none focus:ring-2 ${
+          className={`mt-1.5 w-full rounded-xl border bg-card px-4 py-3 text-sm outline-none focus:ring-2 ${
             nominalError
               ? "border-destructive focus:border-destructive focus:ring-destructive/30"
               : "border-input focus:border-primary focus:ring-primary/30"
@@ -208,7 +208,7 @@ export function BuktiUpload({
           type="file"
           accept="image/jpeg,image/png,image/webp,application/pdf"
           onChange={(event) => pilihFile(event.target.files?.[0] ?? null)}
-          className="mt-1.5 block w-full min-w-0 cursor-pointer rounded-xl border border-input bg-white px-3 py-2.5 text-xs file:mr-2 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-[11px] file:font-medium file:text-primary hover:file:bg-primary/20 sm:px-4 sm:py-3 sm:text-sm sm:file:mr-3 sm:file:px-4 sm:file:text-xs"
+          className="mt-1.5 block w-full min-w-0 cursor-pointer rounded-xl border border-input bg-card px-3 py-2.5 text-xs file:mr-2 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-[11px] file:font-medium file:text-primary hover:file:bg-primary/20 sm:px-4 sm:py-3 sm:text-sm sm:file:mr-3 sm:file:px-4 sm:file:text-xs"
         />
         <p className="mt-1 text-xs text-muted-foreground">
           JPG, PNG, WEBP, atau PDF. Maksimal 4 MB.

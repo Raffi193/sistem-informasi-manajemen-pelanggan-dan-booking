@@ -57,7 +57,7 @@ export function PaymentInstructions({
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <article className="flex h-full flex-col rounded-2xl border border-border bg-white p-5">
+        <article className="flex h-full flex-col rounded-2xl border border-border bg-card p-5">
           <div className="flex items-start gap-3">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <QrCode className="size-5" aria-hidden="true" />
@@ -85,7 +85,7 @@ export function PaymentInstructions({
                 </p>
               </div>
             ) : (
-              <div className="rounded-xl border border-border bg-white p-3">
+              <div className="rounded-xl border border-border bg-card p-3">
                 <Image
                   src={PAYMENT.qris.imagePath}
                   alt={`QRIS ${PAYMENT.qris.merchantName}`}
@@ -129,7 +129,7 @@ export function PaymentInstructions({
           </div>
         </article>
 
-        <article className="flex h-full flex-col rounded-2xl border border-border bg-white p-5">
+        <article className="flex h-full flex-col rounded-2xl border border-border bg-card p-5">
           <div className="flex items-start gap-3">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Landmark className="size-5" aria-hidden="true" />
@@ -180,7 +180,9 @@ export function PaymentInstructions({
                 role="status"
                 aria-live="polite"
                 className={`mt-1 min-h-4 text-xs ${
-                  copyError ? "text-destructive" : "text-green-700"
+                  copyError
+                    ? "text-destructive"
+                    : "text-green-700 dark:text-green-400"
                 }`}
               >
                 {copied
@@ -211,7 +213,7 @@ export function PaymentInstructions({
               </div>
             )}
 
-            <p className="mt-auto rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-900">
+            <p className="mt-auto rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300">
               Pastikan nama penerima sesuai. Simpan bukti transfer untuk
               diunggah.
             </p>

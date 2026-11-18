@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ForceLightTheme } from "@/components/force-light-theme";
 import { createPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = createPageMetadata({
@@ -13,5 +14,10 @@ export default function LoginLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      {children}
+      <ForceLightTheme />
+    </>
+  );
 }

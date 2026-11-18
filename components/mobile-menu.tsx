@@ -39,7 +39,7 @@ export function MobileMenu({ items }: { items: NavItem[] }) {
       </button>
 
       {open && (
-        <div className="animate-page-in absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-border bg-white shadow-lg">
+        <div className="animate-page-in absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
           <nav className="flex flex-col p-2">
             {items.map((item) => (
               <Link
