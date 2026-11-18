@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { CalendarDays } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { BuktiUpload } from "@/components/bukti-upload";
 import { PaymentInstructions } from "@/components/payment-instructions";
@@ -256,10 +257,12 @@ export default function BookingPage() {
         <SiteHeader />
         <main className="flex flex-1 items-center justify-center px-6 py-24">
           <div className="max-w-md text-center">
-            <h1 className="font-display text-2xl font-bold">Fitur belum terhubung</h1>
+            <h1 className="font-display text-2xl font-bold">
+              Sistem booking belum aktif
+            </h1>
             <p className="mt-3 text-muted-foreground">
-              Sistem booking online belum diaktifkan karena database belum
-              terhubung. Sementara itu, Anda bisa booking langsung lewat admin.
+              Booking online belum tersedia karena database belum terhubung.
+              Sementara itu, Anda bisa menghubungi admin lewat WhatsApp.
             </p>
             <a
               href="https://wa.me/6282182944995"
@@ -388,11 +391,16 @@ export default function BookingPage() {
           </ol>
         </nav>
         <div className="animate-fade-up text-center">
-          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
-            Booking jadwal kursus mengemudi di Palembang
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Isi tiga langkah singkat di bawah ini.
+          <div className="flex items-center justify-center gap-3">
+            <span className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <CalendarDays className="size-5" aria-hidden="true" />
+            </span>
+            <h1 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
+              Amankan jadwal kursus mengemudi di Palembang
+            </h1>
+          </div>
+          <p className="mt-3 text-muted-foreground">
+            Lengkapi tiga langkah singkat, lalu amankan jadwal kursus Anda.
           </p>
         </div>
 

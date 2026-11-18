@@ -1,7 +1,22 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { FaqAccordion } from "@/components/faq-accordion";
+import {
+  ArrowRight,
+  BadgeCheck,
+  CalendarCheck,
+  CalendarClock,
+  CheckCircle2,
+  Clock3,
+  CreditCard,
+  HelpCircle,
+  MapPin,
+  MessageCircle,
+  Package,
+  SearchCheck,
+  Sparkles,
+} from "lucide-react";
 import { InstructorCarousel } from "@/components/instructor-carousel";
 import { Parallax } from "@/components/parallax";
 import { Reveal } from "@/components/reveal";
@@ -30,31 +45,37 @@ const steps = [
   {
     title: "Pilih paket",
     desc: "Tentukan paket manual, matic, atau kombinasi sesuai kebutuhan Anda.",
+    icon: Package,
   },
   {
     title: "Pilih jadwal",
-    desc: "Lihat jadwal dan sisa kuota secara real-time, lalu pilih waktu yang sesuai.",
+    desc: "Lihat slot dan sisa kuota secara real-time, lalu pilih waktu yang pas.",
+    icon: CalendarClock,
   },
   {
     title: "Booking & bayar DP",
     desc: "Isi biodata sekali, bayar DP, lalu unggah bukti pembayaran.",
+    icon: CreditCard,
   },
 ];
 
 const keunggulan = [
   {
     title: "Cek jadwal real-time",
-    desc: "Lihat jadwal yang tersedia langsung dari website, tanpa menunggu balasan admin.",
+    desc: "Lihat slot yang tersedia langsung dari website, tanpa menunggu balasan admin.",
+    icon: SearchCheck,
   },
   {
     title: "Isi data sekali",
-    desc: "Biodata cukup diisi satu kali dan dipakai ulang oleh admin — tanpa input berulang.",
+    desc: "Biodata cukup diisi satu kali dan dipakai ulang oleh admin tanpa input berulang.",
+    icon: BadgeCheck,
   },
   {
     title: "Verifikasi transparan",
-    desc: "Unggah bukti pembayaran dan pantau status booking Anda kapan saja.",
+    desc: "Unggah bukti pembayaran dan pantau status booking kapan saja dari website.",
+    icon: CheckCircle2,
   },
-];
+] as const;
 
 const labelTransmisi = (transmisi: string) =>
   transmisi === "kombinasi"
@@ -101,8 +122,8 @@ export default async function Home() {
               className="animate-fade-up mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground"
               style={{ animationDelay: "120ms" }}
             >
-              Pilih paket, lihat jam yang tersedia, dan booking jadwal kursus
-              langsung dari website, tanpa bolak-balik konfirmasi ke admin.
+              Pilih paket favorit, cek slot real-time, dan amankan jadwal kursus
+              Anda langsung dari website—tanpa bolak-balik konfirmasi ke admin.
             </p>
             <div
               className="animate-fade-up mt-9 flex flex-wrap items-center justify-center gap-3"
@@ -110,14 +131,26 @@ export default async function Home() {
             >
               <Link
                 href="/booking"
-                className="rounded-full bg-primary px-7 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                className="group inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-base font-medium text-primary-foreground transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-lg"
               >
+                <CalendarCheck
+                  className="size-4 transition-transform duration-300 group-hover:scale-110"
+                  aria-hidden="true"
+                />
                 Booking Sekarang
+                <ArrowRight
+                  className="size-4 transition-transform duration-300 group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
               </Link>
               <Link
                 href="#paket"
-                className="rounded-full border border-border bg-white px-7 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary"
+                className="group inline-flex items-center gap-2 rounded-full border border-border bg-white px-7 py-3 text-base font-medium text-foreground transition-all duration-300 hover:-translate-y-0.5 hover:bg-secondary hover:shadow-md"
               >
+                <Package
+                  className="size-4 transition-transform duration-300 group-hover:scale-110"
+                  aria-hidden="true"
+                />
                 Lihat Paket
               </Link>
             </div>
@@ -150,11 +183,16 @@ export default async function Home() {
             <div className="grid gap-5 md:grid-cols-3">
               {keunggulan.map((item, index) => (
                 <Reveal key={item.title} delay={index * 90} className="h-full">
-                  <div className="card-lift h-full rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 p-8">
-                    <h3 className="font-display text-xl font-bold text-foreground">
-                      {item.title}
-                    </h3>
-                    <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
+                  <div className="card-lift group h-full rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/70 text-primary shadow-sm transition-transform duration-300 group-hover:scale-110">
+                        <item.icon className="size-5" aria-hidden="true" />
+                      </span>
+                      <h3 className="font-display text-xl font-bold text-foreground">
+                        {item.title}
+                      </h3>
+                    </div>
+                    <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
                       {item.desc}
                     </p>
                   </div>
@@ -188,33 +226,38 @@ export default async function Home() {
               </div>
               <ul className="mt-6 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
                 <li className="flex gap-2">
-                  <span className="text-primary" aria-hidden>
-                    •
-                  </span>
+                  <CheckCircle2
+                    className="mt-0.5 size-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
                   Instruktur bersertifikat dan berpengalaman
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-primary" aria-hidden>
-                    •
-                  </span>
+                  <CheckCircle2
+                    className="mt-0.5 size-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
                   Mobil manual dan matic
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-primary" aria-hidden>
-                    •
-                  </span>
+                  <CheckCircle2
+                    className="mt-0.5 size-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
                   Jadwal fleksibel, termasuk kelas malam
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-primary" aria-hidden>
-                    •
-                  </span>
+                  <CheckCircle2
+                    className="mt-0.5 size-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
                   Antar-jemput sesuai paket
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-primary" aria-hidden>
-                    •
-                  </span>
+                  <CheckCircle2
+                    className="mt-0.5 size-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
                   Booking online dan cek status kapan saja
                 </li>
               </ul>
@@ -236,10 +279,16 @@ export default async function Home() {
             <div className="grid gap-5 md:grid-cols-3">
               {steps.map((step, i) => (
                 <Reveal key={step.title} delay={i * 90} className="h-full">
-                  <div className="card-lift h-full rounded-2xl border border-border bg-white p-7">
-                    <span className="font-display text-sm font-bold text-primary">
-                      0{i + 1}
-                    </span>
+                  <div className="card-lift group h-full rounded-2xl border border-border bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="font-display text-sm font-bold text-primary">
+                        0{i + 1}
+                      </span>
+                      <step.icon
+                        className="size-5 text-primary/70 transition-transform duration-300 group-hover:scale-110 group-hover:text-primary"
+                        aria-hidden="true"
+                      />
+                    </div>
                     <h3 className="mt-3 font-display text-lg font-bold text-foreground">
                       {step.title}
                     </h3>
@@ -353,9 +402,14 @@ export default async function Home() {
             <div className="grid gap-5 md:grid-cols-2">
               <Reveal variant="left" className="h-full">
                 <div className="card-lift h-full rounded-3xl border border-border bg-white p-8">
-                  <h2 className="font-display text-2xl font-bold tracking-tight">
-                    Jam kursus
-                  </h2>
+                  <div className="flex items-center gap-3">
+                    <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                      <Clock3 className="size-5" aria-hidden="true" />
+                    </span>
+                    <h2 className="font-display text-2xl font-bold tracking-tight">
+                      Jam kursus
+                    </h2>
+                  </div>
                   <dl className="mt-6 space-y-4 text-[15px]">
                     <div className="flex items-baseline justify-between gap-4">
                       <dt className="text-muted-foreground">Setiap hari</dt>
@@ -375,14 +429,23 @@ export default async function Home() {
 
               <Reveal variant="right" delay={100} className="h-full">
                 <div className="card-lift h-full rounded-3xl border border-border bg-white p-8">
-                  <h2 className="font-display text-2xl font-bold tracking-tight">
-                    Lokasi kami
-                  </h2>
+                  <div className="flex items-center gap-3">
+                    <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                      <MapPin className="size-5" aria-hidden="true" />
+                    </span>
+                    <h2 className="font-display text-2xl font-bold tracking-tight">
+                      Lokasi kami
+                    </h2>
+                  </div>
                   <p className="mt-6 text-[15px] leading-relaxed text-muted-foreground">
                     {SITE_ADDRESS.streetAddress}, Kota{" "}
                     {SITE_ADDRESS.addressLocality} {SITE_ADDRESS.postalCode}
                   </p>
-                  <p className="mt-2 text-[15px] text-muted-foreground">
+                  <p className="mt-2 flex items-center gap-2 text-[15px] text-muted-foreground">
+                    <MessageCircle
+                      className="size-4 text-primary"
+                      aria-hidden="true"
+                    />
                     WhatsApp:{" "}
                     <a
                       href={SITE_WHATSAPP_URL}
@@ -397,8 +460,12 @@ export default async function Home() {
                     href={SITE_MAPS_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-6 inline-block rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                    className="group mt-6 inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-all duration-300 hover:-translate-y-0.5 hover:bg-secondary hover:shadow-md"
                   >
+                    <MapPin
+                      className="size-4 transition-transform duration-300 group-hover:scale-110"
+                      aria-hidden="true"
+                    />
                     Buka di Google Maps
                   </a>
                 </div>
@@ -411,9 +478,14 @@ export default async function Home() {
         <section id="faq" className="px-4 pb-24">
           <div className="mx-auto max-w-3xl">
             <Reveal className="mb-8 text-center">
-              <h2 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
-                Pertanyaan yang sering diajukan
-              </h2>
+              <div className="flex items-center justify-center gap-3">
+                <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <HelpCircle className="size-5" aria-hidden="true" />
+                </span>
+                <h2 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">
+                  Pertanyaan yang sering diajukan
+                </h2>
+              </div>
               <p className="mt-3 text-muted-foreground">
                 Belum menemukan jawaban? Hubungi kami lewat WhatsApp.
               </p>
@@ -429,18 +501,29 @@ export default async function Home() {
               variant="zoom"
               className="overflow-hidden rounded-3xl bg-primary px-8 py-16 text-center"
             >
-              <h2 className="font-display text-3xl font-bold leading-tight text-white md:text-4xl">
-                Siap mulai belajar mengemudi?
-              </h2>
+              <div className="flex items-center justify-center gap-3">
+                <Sparkles className="size-6 text-white/90" aria-hidden="true" />
+                <h2 className="font-display text-3xl font-bold leading-tight text-white md:text-4xl">
+                  Siap mulai belajar mengemudi?
+                </h2>
+              </div>
               <p className="mx-auto mt-3 max-w-md text-blue-100">
-                Booking jadwal kursus Anda hari ini bersama instruktur berpengalaman
+                Amankan jadwal kursus Anda hari ini bersama instruktur berpengalaman
                 LPK CV. Fathan.
               </p>
               <Link
                 href="/booking"
-                className="mt-8 inline-block rounded-full bg-white px-7 py-3 text-base font-medium text-primary transition-colors hover:bg-blue-50"
+                className="group mt-8 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-base font-medium text-primary transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-lg"
               >
+                <CalendarCheck
+                  className="size-4 transition-transform duration-300 group-hover:scale-110"
+                  aria-hidden="true"
+                />
                 Booking Sekarang
+                <ArrowRight
+                  className="size-4 transition-transform duration-300 group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
               </Link>
             </Reveal>
           </div>

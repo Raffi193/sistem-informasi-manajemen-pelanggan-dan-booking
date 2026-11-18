@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
+import { CustomerForm } from "@/components/customer-form";
 import { CustomerStatusBadge } from "@/components/customer-status-badge";
 import { DeleteCustomerButton } from "@/components/delete-customer-button";
 import { FollowUpForm } from "@/components/follow-up-form";
@@ -14,6 +15,7 @@ import {
 import { calculateAge, formatTanggal, todayInJakarta } from "@/lib/date";
 import { one, type Embed } from "@/lib/embed";
 import { formatJam, formatRupiah } from "@/lib/format";
+import { updateCustomerAction } from "@/app/admin/customer/actions";
 import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
@@ -48,12 +50,15 @@ type FollowUpRow = {
 
 export default async function CustomerDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ updated?: string; created?: string }>;
 }) {
   await connection();
 
   const { id } = await params;
+  const paramsResolved = searchParams ? await searchParams : {};
   const supabase = await createClient();
 
   // Ketiga query tidak saling bergantung, jadi jalankan bersamaan.
@@ -103,6 +108,17 @@ export default async function CustomerDetailPage({
         </Link>
       </div>
 
+      {(paramsResolved.updated || paramsResolved.created) && (
+        <p
+          role="status"
+          className="rounded-xl border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800"
+        >
+          {paramsResolved.created
+            ? "Customer berhasil ditambahkan."
+            : "Data customer berhasil diperbarui."}
+        </p>
+      )}
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
@@ -148,7 +164,8 @@ export default async function CustomerDetailPage({
         <section className="rounded-2xl border border-border bg-white p-5">
           <h2 className="font-display font-bold">Data customer</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Data dari booking customer. Admin hanya dapat melihat.
+            Data identitas customer saat ini. Gunakan form di bawah untuk
+            memperbaruinya.
           </p>
           <dl className="mt-5 grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
             <div className="sm:col-span-2">
@@ -224,6 +241,21 @@ export default async function CustomerDetailPage({
           </div>
         </section>
       </div>
+
+      <section className="rounded-2xl border border-border bg-white p-5">
+        <h2 className="font-display font-bold">Edit data customer</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Perbarui identitas customer, status CRM, dan data kontak.
+        </p>
+        <div className="mt-5">
+          <CustomerForm
+            mode="edit"
+            customer={customerRow}
+            action={updateCustomerAction}
+            cancelHref={`/admin/customer/${customerRow.id}`}
+          />
+        </div>
+      </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <section className="overflow-hidden rounded-2xl border border-border bg-white">

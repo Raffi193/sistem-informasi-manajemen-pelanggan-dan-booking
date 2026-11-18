@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { Search } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { BuktiUpload } from "@/components/bukti-upload";
 import { PaymentInstructions } from "@/components/payment-instructions";
@@ -103,11 +104,17 @@ export default function StatusPage() {
       <SiteHeader />
       <main className="mx-auto w-full max-w-xl flex-1 px-4 py-12 sm:px-6 sm:py-16">
         <div className="animate-fade-up text-center">
-          <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
-            Cek status booking
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Masukkan kode booking dan nomor WhatsApp Anda.
+          <div className="flex items-center justify-center gap-3">
+            <span className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <Search className="size-5" aria-hidden="true" />
+            </span>
+            <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
+              Pantau status booking Anda
+            </h1>
+          </div>
+          <p className="mt-3 text-muted-foreground">
+            Masukkan kode booking dan nomor WhatsApp untuk melihat progres
+            terbaru.
           </p>
         </div>
 
@@ -161,7 +168,7 @@ export default function StatusPage() {
               <li>• Gunakan nomor WhatsApp yang sama seperti saat booking.</li>
               <li>
                 • Masih tidak ketemu? Hubungi admin lewat WhatsApp{" "}
-                <span className="font-medium">082182944995</span>.
+                <span className="font-medium">0821-8294-4995</span>.
               </li>
             </ul>
           </div>

@@ -142,12 +142,20 @@ export default async function CustomerPage({
         title="Customer & follow-up"
         description="Cari customer, lihat data dari booking, dan catat riwayat komunikasi."
         action={
-          <Link
-            href="/admin/laporan"
-            className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-          >
-            Lihat laporan →
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/admin/customer/new"
+              className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Tambah customer
+            </Link>
+            <Link
+              href="/admin/laporan"
+              className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+            >
+              Lihat laporan →
+            </Link>
+          </div>
         }
       />
 
