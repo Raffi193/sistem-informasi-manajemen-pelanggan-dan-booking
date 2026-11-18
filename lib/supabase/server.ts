@@ -18,9 +18,16 @@ export async function createClient() {
       },
       setAll(cookiesToSet) {
         try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // Supabase memaksa maxAge panjang. Hapus lifetime agar cookie
+            // menjadi session cookie, kecuali untuk operasi hapus (maxAge 0).
+            const sessionOptions = { ...options };
+            delete sessionOptions.maxAge;
+            delete sessionOptions.expires;
+            if (options.maxAge === 0) sessionOptions.maxAge = 0;
+
+            cookieStore.set(name, value, sessionOptions);
+          });
         } catch {
           // Dipanggil dari Server Component — aman untuk diabaikan.
           // Middleware akan tetap menyetel cookie saat refresh.

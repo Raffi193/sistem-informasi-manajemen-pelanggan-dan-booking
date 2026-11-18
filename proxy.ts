@@ -22,9 +22,15 @@ export async function proxy(request: NextRequest) {
           request.cookies.set(name, value),
         );
         response = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options),
-        );
+        cookiesToSet.forEach(({ name, value, options }) => {
+          // Samakan dengan server client: sesi memakai session cookie.
+          const sessionOptions = { ...options };
+          delete sessionOptions.maxAge;
+          delete sessionOptions.expires;
+          if (options.maxAge === 0) sessionOptions.maxAge = 0;
+
+          response.cookies.set(name, value, sessionOptions);
+        });
       },
     },
   });

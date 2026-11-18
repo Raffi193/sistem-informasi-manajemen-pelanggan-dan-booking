@@ -111,7 +111,8 @@ Set di Vercel Project Settings > Environment Variables:
 | `NEXT_PUBLIC_WA_ADMIN` | Production, Preview |
 | `NEXT_PUBLIC_SITE_URL` | Production (`https://lpkcvfathan.vercel.app`) |
 | `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | Production (opsional) |
-| `ADMIN_EMAILS` | Production (opsional, fallback) |
+| `ADMIN_EMAILS` | Production (opsional, fallback darurat) |
+| `ALLOW_ADMIN_EMAIL_FALLBACK` | Production (opsional, set `true` hanya jika fallback email diperlukan) |
 
 Jangan pernah menaruh `SUPABASE_SERVICE_ROLE_KEY` di variabel `NEXT_PUBLIC_*`.
 
@@ -149,7 +150,15 @@ Jangan pernah menaruh `SUPABASE_SERVICE_ROLE_KEY` di variabel `NEXT_PUBLIC_*`.
   `/api/bukti` bila trafik meningkat.
 - Pantau Vercel Functions logs dan Supabase logs.
 
-## 9. Rollback
+## 9. Keamanan Admin
+
+- Pastikan user admin memiliki `app_metadata.role = "admin"` di Supabase Auth.
+- Jangan set `ALLOW_ADMIN_EMAIL_FALLBACK=true` di production kecuali darurat.
+- Nonaktifkan signup Supabase untuk production.
+- Sesi admin memakai session cookie dan logout otomatis setelah 30 menit tanpa aktivitas.
+- Halaman `/admin` dan `/login` mengirim header `Cache-Control: no-store`.
+
+## 10. Rollback
 
 - Vercel: Deployments > pilih deployment sebelumnya > **Instant Rollback**.
 - Database: restore backup Supabase sebelum migrasi.

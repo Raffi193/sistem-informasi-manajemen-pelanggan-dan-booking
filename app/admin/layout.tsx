@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { AdminNav } from "@/components/admin-nav";
+import { AdminSessionGuard } from "@/components/admin-session-guard";
 import { BrandLogo } from "@/components/brand-logo";
 import { PageTransition } from "@/components/page-transition";
 import { isAdminClaims } from "@/lib/auth";
@@ -112,6 +113,7 @@ export default async function AdminLayout({
           <PageTransition>{children}</PageTransition>
         </main>
       </div>
+      <AdminSessionGuard />
     </div>
   );
 }

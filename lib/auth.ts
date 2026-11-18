@@ -25,6 +25,14 @@ export function isAdminClaims(claims: AdminClaims): boolean {
     return true;
   }
 
+  // Fallback email hanya untuk lokal/darurat. Di production, admin wajib
+  // ditentukan lewat app_metadata.role agar tidak bergantung pada env email.
+  const fallbackAllowed =
+    process.env.NODE_ENV !== "production" ||
+    process.env.ALLOW_ADMIN_EMAIL_FALLBACK === "true";
+
+  if (!fallbackAllowed) return false;
+
   const email =
     typeof claims.email === "string" ? claims.email.trim().toLowerCase() : "";
   if (!email) return false;

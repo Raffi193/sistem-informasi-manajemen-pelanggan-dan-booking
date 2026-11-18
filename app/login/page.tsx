@@ -23,6 +23,8 @@ export default function LoginPage() {
     if (params.get("error") === "not-admin") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setError("Akun ini tidak memiliki akses admin.");
+    } else if (params.get("reason") === "idle") {
+      setError("Sesi berakhir karena tidak ada aktivitas. Silakan masuk kembali.");
     }
   }, []);
 
