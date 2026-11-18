@@ -26,7 +26,6 @@ export function SiteHeader() {
           </Link>
 
           <div className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">
-            <ThemeToggle />
             {navItems.map((item) => (
               <Link
                 key={item.href}
