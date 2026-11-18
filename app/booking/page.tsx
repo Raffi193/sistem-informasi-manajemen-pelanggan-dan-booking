@@ -10,6 +10,7 @@ import { formatTanggal, todayInJakarta } from "@/lib/date";
 import { formatJam, formatRupiah } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/is-configured";
+import { Info, Moon, CalendarOff } from "lucide-react";
 
 type Paket = {
   id: string;
@@ -576,11 +577,38 @@ export default function BookingPage() {
                   );
                 })}
               </div>
-            )}
-            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              Jadwal ini adalah jadwal awal, jadwal pertemuan berikutnya dapat
-              diatur dengan admin.
-            </p>
+            )}            
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-red-700">
+                <Info className="h-4 w-4" />
+                Informasi Jadwal
+              </div>
+
+              <ul className="mt-3 space-y-2.5 text-sm leading-relaxed text-gray-700">
+                <li className="flex gap-2.5">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                  <span>
+                    Jadwal ini adalah jadwal booking awal. Jadwal pertemuan berikutnya dapat
+                    diatur dengan admin.
+                  </span>
+                </li>
+
+                <li className="flex gap-2.5">
+                  <Moon className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                  <span>
+                    Jadwal jam malam dan hari Minggu terdapat biaya tambahan{" "}
+                    <span className="rounded-md bg-red-100 px-1.5 py-0.5 font-semibold text-red-700">
+                      Rp20.000
+                    </span>
+                  </span>
+                </li>
+
+                <li className="flex gap-2.5">
+                  <CalendarOff className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                  <span>Hari Sabtu libur, tidak ada jadwal latihan.</span>
+                </li>
+              </ul>
+            </div>
           </section>
         )}
 

@@ -2,46 +2,156 @@
 
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, UserRound } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { AdminNav } from "@/components/admin-nav";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/utils";
 
-const STORAGE_KEY = "fathan-admin-sidebar-collapsed";
+const WIDTH_KEY = "fathan-admin-sidebar-width";
+const OLD_COLLAPSED_KEY = "fathan-admin-sidebar-collapsed";
+const DEFAULT_WIDTH = 264;
+const MIN_WIDTH = 220;
+const MAX_WIDTH = 420;
+const COLLAPSED_WIDTH = 80;
+
+function snapWidth(value: number) {
+  if (value <= 150) return COLLAPSED_WIDTH;
+  return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, value));
+}
+
+function persistWidth(width: number) {
+  try {
+    window.localStorage.setItem(WIDTH_KEY, String(width));
+    window.localStorage.removeItem(OLD_COLLAPSED_KEY);
+  } catch {
+    // localStorage bisa diblokir browser; abaikan.
+  }
+}
 
 export function AdminSidebar({ email }: { email: string }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const [dragging, setDragging] = useState(false);
+  const asideRef = useRef<HTMLElement>(null);
+  const widthRef = useRef(DEFAULT_WIDTH);
+  const lastExpandedWidth = useRef(DEFAULT_WIDTH);
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved === "1") {
+      const savedWidth = Number(window.localStorage.getItem(WIDTH_KEY));
+
+      if (Number.isFinite(savedWidth) && savedWidth > 0) {
+        const next = snapWidth(savedWidth);
+        widthRef.current = next;
+        if (next > COLLAPSED_WIDTH) lastExpandedWidth.current = next;
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setCollapsed(true);
+        setWidth(next);
+        return;
+      }
+
+      if (window.localStorage.getItem(OLD_COLLAPSED_KEY) === "1") {
+        widthRef.current = COLLAPSED_WIDTH;
+        setWidth(COLLAPSED_WIDTH);
       }
     } catch {
-      // localStorage bisa diblokir browser; abaikan.
+      // Abaikan jika localStorage tidak tersedia.
     }
   }, []);
 
-  function toggleSidebar() {
-    setCollapsed((current) => {
-      const next = !current;
-      try {
-        window.localStorage.setItem(STORAGE_KEY, next ? "1" : "0");
-      } catch {
-        // Abaikan jika localStorage tidak tersedia.
-      }
-      return next;
-    });
+  useEffect(() => {
+    if (!dragging) return;
+
+    const left = asideRef.current?.getBoundingClientRect().left ?? 0;
+
+    const handleMove = (event: PointerEvent) => {
+      const next = snapWidth(event.clientX - left);
+      widthRef.current = next;
+      if (next > COLLAPSED_WIDTH) lastExpandedWidth.current = next;
+      setWidth(next);
+    };
+
+    const finishDrag = () => {
+      setDragging(false);
+      persistWidth(widthRef.current);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", finishDrag);
+    window.addEventListener("pointercancel", finishDrag);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", finishDrag);
+      window.removeEventListener("pointercancel", finishDrag);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [dragging]);
+
+  function updateWidth(next: number, persist = true) {
+    const snapped = snapWidth(next);
+    widthRef.current = snapped;
+    if (snapped > COLLAPSED_WIDTH) lastExpandedWidth.current = snapped;
+    setWidth(snapped);
+    if (persist) persistWidth(snapped);
   }
+
+  function toggleSidebar() {
+    if (widthRef.current <= COLLAPSED_WIDTH) {
+      updateWidth(lastExpandedWidth.current);
+      return;
+    }
+
+    lastExpandedWidth.current = widthRef.current;
+    updateWidth(COLLAPSED_WIDTH);
+  }
+
+  function startDragging(event: React.PointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    setDragging(true);
+  }
+
+  function handleResizeKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      updateWidth(
+        widthRef.current <= COLLAPSED_WIDTH
+          ? COLLAPSED_WIDTH
+          : widthRef.current - 16,
+      );
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      updateWidth(
+        widthRef.current <= COLLAPSED_WIDTH
+          ? lastExpandedWidth.current
+          : widthRef.current + 16,
+      );
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      updateWidth(MIN_WIDTH);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      updateWidth(MAX_WIDTH);
+    } else if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleSidebar();
+    }
+  }
+
+  const collapsed = width <= COLLAPSED_WIDTH;
 
   return (
     <aside
+      ref={asideRef}
+      style={{ width: `${width}px` }}
       className={cn(
-        "hidden shrink-0 transition-[width] duration-200 md:block",
-        collapsed ? "w-20" : "w-60",
+        "hidden shrink-0 md:block",
+        !dragging && "transition-[width] duration-200",
       )}
     >
       <div className="sticky top-6 rounded-2xl border border-border bg-white p-3">
@@ -119,6 +229,24 @@ export function AdminSidebar({ email }: { email: string }) {
             </>
           )}
         </div>
+
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Atur lebar sidebar"
+          aria-valuemin={COLLAPSED_WIDTH}
+          aria-valuemax={MAX_WIDTH}
+          aria-valuenow={width}
+          tabIndex={0}
+          title="Drag untuk mengatur lebar sidebar"
+          onPointerDown={startDragging}
+          onKeyDown={handleResizeKeyDown}
+          onDoubleClick={() => updateWidth(DEFAULT_WIDTH)}
+          className={cn(
+            "absolute inset-y-4 -right-1 w-2 cursor-col-resize touch-none rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+            dragging ? "bg-primary/50" : "bg-border/70 hover:bg-primary/40",
+          )}
+        />
       </div>
     </aside>
   );
