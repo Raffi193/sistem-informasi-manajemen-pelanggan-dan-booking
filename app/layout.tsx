@@ -89,7 +89,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(() => { try { const theme = localStorage.getItem("theme"); const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches; const isDark = theme === "dark" || (!theme && prefersDark); document.documentElement.classList.toggle("dark", isDark); } catch {} })();`,
+            __html: `(() => { try { const theme = localStorage.getItem("theme"); const isDark = theme === "dark"; document.documentElement.classList.toggle("dark", isDark); } catch {} })();`,
           }}
         />
       </head>
