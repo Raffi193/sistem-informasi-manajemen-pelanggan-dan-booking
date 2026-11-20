@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
-const fallbackSiteUrl = "https://lpkcvfathan.vercel.app";
-const vercelProductionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+const fallbackSiteUrl = "https://www.lpkcvfathan.my.id";
+const legacySiteHost = "lpkcvfathan.vercel.app";
+const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
 const configuredSiteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-  (vercelProductionUrl
-    ? `https://${vercelProductionUrl.replace(/^https?:\/\//, "")}`
-    : fallbackSiteUrl);
+  envSiteUrl && !envSiteUrl.toLowerCase().includes(legacySiteHost)
+    ? envSiteUrl
+    : fallbackSiteUrl;
 
 /** URL kanonis tanpa trailing slash. */
 export const SITE_URL = (
